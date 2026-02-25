@@ -8,6 +8,11 @@ The Vaccine Panda home vaccination platform is fully built. The backend admin pa
 
 ## Recently Completed
 
+- [x] **Login error fix**: Created two missing API routes that `ProfileClient.tsx` was calling but didn't exist:
+  - `src/app/api/family-members/customer/[customerId]/route.ts` — GET family members by customer ID
+  - `src/app/api/bookings/customer/[customerId]/route.ts` — GET bookings by customer ID
+  After login, the profile page fetched these routes and got 404s, causing it to redirect back to `/login` — appearing as a "login error". Also fixed unused `password` variable in `src/app/api/customers/[id]/route.ts` (renamed to `_password`). Committed as `ac9ebbe`.
+
 - [x] **Critical mobile fix**: `src/app/layout.tsx` — added missing `viewport` export (`width: "device-width", initialScale: 1`). Without this, mobile browsers render the page at ~980px desktop width, making ALL Tailwind responsive breakpoints (`sm:`, `md:`, etc.) completely ineffective. This was the root cause of "not responsive on phone".
 
 - [x] Mobile responsiveness overhaul: `src/app/page.tsx` — all sections now use responsive typography (`text-3xl sm:text-4xl md:text-5xl lg:text-6xl`), responsive spacing (`py-14 sm:py-20 md:py-24`), and responsive padding. Trust bar gap reduced on mobile. Vaccine grid cards smaller on mobile. Footer uses `grid-cols-2 md:grid-cols-4` with brand column spanning full width on mobile.
