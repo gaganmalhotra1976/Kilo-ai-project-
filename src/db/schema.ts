@@ -6,6 +6,7 @@ export const customers = sqliteTable("customers", {
   name: text("name").notNull(),
   phone: text("phone").notNull(),
   email: text("email"),
+  password: text("password"), // For customer login
   address: text("address"),
   city: text("city").notNull().default("Delhi"),
   notes: text("notes"),
