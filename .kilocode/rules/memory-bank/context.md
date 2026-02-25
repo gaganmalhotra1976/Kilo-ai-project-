@@ -14,6 +14,7 @@ The template is a clean Next.js 16 starter with TypeScript and Tailwind CSS 4. I
 - [x] ESLint configuration
 - [x] Memory bank documentation
 - [x] Recipe system for common features
+- [x] Pricing page (`/pricing`) for The Vaccine Panda — emerald brand, 3-tier booking cards (Individual / Family / Corporate), FAQ accordion, CTA banner, GSTIN footer
 
 ## Current Structure
 
