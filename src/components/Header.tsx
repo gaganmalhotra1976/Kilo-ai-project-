@@ -30,7 +30,7 @@ export default function Header() {
     { label: "Vaccines", href: "/vaccines" },
     { label: "Pricing", href: "/pricing" },
     { 
-      label: "Menu", 
+      label: "More", 
       href: "#", 
       hasDropdown: true,
       dropdownItems: [
@@ -47,10 +47,12 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4">
         <div className="flex items-center justify-between h-14 md:h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-1.5 md:gap-2 font-extrabold text-emerald-700 text-lg md:text-xl hover:opacity-90 transition-opacity">
-            <span className="text-2xl">🐼</span>
-            <span className="hidden xs:inline text-sm md:text-base">The Vaccine Panda</span>
-            <span className="xs:hidden text-sm">Vaccine Panda</span>
+          <Link href="/" className="flex items-center gap-1.5 md:gap-2 font-extrabold text-emerald-700 hover:opacity-90 transition-opacity min-w-0">
+            <span className="text-2xl flex-shrink-0">🐼</span>
+            <span className="text-sm md:text-base truncate">
+              <span className="hidden sm:inline">The Vaccine Panda</span>
+              <span className="sm:hidden">Vaccine Panda</span>
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -96,16 +98,16 @@ export default function Header() {
           </nav>
 
           {/* Right side - Login & Book Now */}
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
             <Link
               href="/login"
-              className="hidden sm:flex text-emerald-700 text-xs md:text-sm font-semibold px-3 md:px-4 py-1.5 md:py-2 border-2 border-emerald-600 rounded-full hover:bg-emerald-50 transition-colors"
+              className="text-emerald-700 text-xs md:text-sm font-semibold px-2.5 sm:px-3 md:px-4 py-1.5 md:py-2 border-2 border-emerald-600 rounded-full hover:bg-emerald-50 transition-colors whitespace-nowrap"
             >
               Login
             </Link>
             <Link
               href="/book"
-              className="bg-emerald-600 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-emerald-700 transition-all shadow-md"
+              className="bg-emerald-600 text-white text-xs md:text-sm font-semibold px-3 sm:px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-emerald-700 transition-all shadow-md whitespace-nowrap"
             >
               Book Now
             </Link>
@@ -113,7 +115,7 @@ export default function Header() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+              className="lg:hidden p-1.5 sm:p-2 text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
               aria-label="Toggle menu"
             >
               <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,13 +160,6 @@ export default function Header() {
                   )}
                 </div>
               ))}
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="sm:hidden mt-2 px-2 py-2.5 text-sm font-semibold text-emerald-700 border-2 border-emerald-600 rounded-full text-center hover:bg-emerald-50 transition-colors"
-              >
-                Login
-              </Link>
             </div>
           </div>
         )}

@@ -73,42 +73,42 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-white">
       {/* ── Hero ── */}
-      <section className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 text-white py-24 px-4">
+      <section className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 text-white py-14 sm:py-20 md:py-24 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-emerald-200 text-sm font-semibold uppercase tracking-widest mb-4">
+          <p className="text-emerald-200 text-xs sm:text-sm font-semibold uppercase tracking-widest mb-3 sm:mb-4">
             Delhi · Noida · Gurgaon
           </p>
-          <h1 className="text-5xl md:text-6xl font-extrabold leading-tight mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4 sm:mb-6">
             Vaccines Delivered<br />
             <span className="text-amber-300">To Your Home</span>
           </h1>
-          <p className="text-emerald-100 text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-emerald-100 text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-7 sm:mb-10 leading-relaxed">
             Certified nurses bring your vaccines to your doorstep. Cold-chain maintained.
             GST invoice included. Serving Delhi NCR since 2023.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Link
               href="/book"
-              className="inline-block bg-white text-emerald-700 font-bold px-10 py-4 rounded-full shadow-xl hover:bg-emerald-50 transition-colors text-lg"
+              className="inline-block bg-white text-emerald-700 font-bold px-7 sm:px-10 py-3 sm:py-4 rounded-full shadow-xl hover:bg-emerald-50 transition-colors text-base sm:text-lg"
             >
               Book a Home Visit →
             </Link>
             <Link
               href="/vaccines"
-              className="inline-block border-2 border-white text-white font-bold px-10 py-4 rounded-full hover:bg-emerald-600 transition-colors text-lg"
+              className="inline-block border-2 border-white text-white font-bold px-7 sm:px-10 py-3 sm:py-4 rounded-full hover:bg-emerald-600 transition-colors text-base sm:text-lg"
             >
               View Vaccines
             </Link>
           </div>
-          <p className="text-emerald-300 text-sm mt-8">
+          <p className="text-emerald-300 text-xs sm:text-sm mt-6 sm:mt-8">
             ✓ Free quote &nbsp;·&nbsp; ✓ No hidden charges &nbsp;·&nbsp; ✓ Free rescheduling
           </p>
         </div>
       </section>
 
       {/* ── Trust bar ── */}
-      <div className="bg-emerald-50 border-y border-emerald-100 py-5 px-4">
-        <div className="max-w-5xl mx-auto flex flex-wrap justify-center gap-8 text-sm font-medium text-emerald-800">
+      <div className="bg-emerald-50 border-y border-emerald-100 py-4 sm:py-5 px-4">
+        <div className="max-w-5xl mx-auto flex flex-wrap justify-center gap-3 sm:gap-6 md:gap-8 text-xs sm:text-sm font-medium text-emerald-800">
           <span>🏥 Certified Nurses</span>
           <span>❄️ Cold-Chain Certified</span>
           <span>🧾 GST Invoices</span>
@@ -118,28 +118,28 @@ export default function HomePage() {
       </div>
 
       {/* ── How it works ── */}
-      <section className="max-w-5xl mx-auto px-4 py-20 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+      <section className="max-w-5xl mx-auto px-4 py-12 sm:py-16 md:py-20 text-center">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
           How It Works
         </h2>
-        <p className="text-gray-500 max-w-xl mx-auto mb-14 text-lg">
+        <p className="text-gray-500 max-w-xl mx-auto mb-10 sm:mb-14 text-base sm:text-lg">
           Getting vaccinated at home is simple. Here&apos;s what happens after you submit your request.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
           {steps.map((s) => (
-            <div key={s.step} className="flex flex-col items-center">
-              <div className="w-14 h-14 rounded-full bg-emerald-600 text-white font-extrabold text-2xl flex items-center justify-center mb-5 shadow-lg">
+            <div key={s.step} className="flex flex-col items-center px-2">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-emerald-600 text-white font-extrabold text-xl sm:text-2xl flex items-center justify-center mb-4 sm:mb-5 shadow-lg">
                 {s.step}
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">{s.title}</h3>
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2">{s.title}</h3>
               <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
             </div>
           ))}
         </div>
-        <div className="mt-12">
+        <div className="mt-8 sm:mt-12">
           <Link
             href="/book"
-            className="inline-block bg-emerald-600 text-white font-bold px-10 py-4 rounded-full hover:bg-emerald-700 transition-colors text-lg shadow"
+            className="inline-block bg-emerald-600 text-white font-bold px-7 sm:px-10 py-3 sm:py-4 rounded-full hover:bg-emerald-700 transition-colors text-base sm:text-lg shadow"
           >
             Get My Free Quote
           </Link>
@@ -147,18 +147,18 @@ export default function HomePage() {
       </section>
 
       {/* ── Features ── */}
-      <section className="bg-gray-50 py-20 px-4">
+      <section className="bg-gray-50 py-12 sm:py-16 md:py-20 px-4">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-14">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 text-center mb-10 sm:mb-14">
             Why Families Choose Us
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {features.map((f) => (
-              <div key={f.title} className="bg-white rounded-2xl p-7 flex gap-4 shadow-sm border border-gray-100">
-                <span className="text-3xl flex-shrink-0">{f.icon}</span>
+              <div key={f.title} className="bg-white rounded-2xl p-5 sm:p-7 flex gap-3 sm:gap-4 shadow-sm border border-gray-100">
+                <span className="text-2xl sm:text-3xl flex-shrink-0">{f.icon}</span>
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-1">{f.title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
+                  <h3 className="font-bold text-gray-900 mb-1 text-sm sm:text-base">{f.title}</h3>
+                  <p className="text-gray-500 text-xs sm:text-sm leading-relaxed">{f.desc}</p>
                 </div>
               </div>
             ))}
@@ -167,28 +167,28 @@ export default function HomePage() {
       </section>
 
       {/* ── Vaccine preview ── */}
-      <section className="max-w-5xl mx-auto px-4 py-20">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-4">
+      <section className="max-w-5xl mx-auto px-4 py-12 sm:py-16 md:py-20">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 text-center mb-3 sm:mb-4">
           Popular Vaccines We Offer
         </h2>
-        <p className="text-gray-500 text-center mb-12 max-w-xl mx-auto">
+        <p className="text-gray-500 text-center mb-8 sm:mb-12 max-w-xl mx-auto text-sm sm:text-base">
           We carry a wide range of vaccines for all age groups. View the full catalogue for details.
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {vaccines.map((v) => (
-            <div key={v.name} className="bg-gray-50 rounded-2xl p-5 text-center border border-gray-100">
-              <div className="text-3xl mb-2">{v.icon}</div>
-              <p className="font-semibold text-gray-900 text-sm">{v.name}</p>
+            <div key={v.name} className="bg-gray-50 rounded-2xl p-3 sm:p-5 text-center border border-gray-100">
+              <div className="text-2xl sm:text-3xl mb-1.5 sm:mb-2">{v.icon}</div>
+              <p className="font-semibold text-gray-900 text-xs sm:text-sm">{v.name}</p>
               <span className="inline-block mt-1 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
                 {v.category}
               </span>
             </div>
           ))}
         </div>
-        <div className="text-center mt-10">
+        <div className="text-center mt-7 sm:mt-10">
           <Link
             href="/vaccines"
-            className="inline-block border-2 border-emerald-600 text-emerald-600 font-bold px-8 py-3 rounded-full hover:bg-emerald-50 transition-colors"
+            className="inline-block border-2 border-emerald-600 text-emerald-600 font-bold px-6 sm:px-8 py-2.5 sm:py-3 rounded-full hover:bg-emerald-50 transition-colors text-sm sm:text-base"
           >
             View Full Catalogue →
           </Link>
@@ -196,12 +196,12 @@ export default function HomePage() {
       </section>
 
       {/* ── Testimonials ── */}
-      <section className="bg-emerald-50 py-20 px-4">
+      <section className="bg-emerald-50 py-12 sm:py-16 md:py-20 px-4">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-8 sm:mb-12">
             What Our Customers Say
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
             {[
               {
                 name: "Priya S.",
@@ -231,23 +231,23 @@ export default function HomePage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white py-20 px-4 text-center">
-        <h2 className="text-3xl md:text-4xl font-extrabold mb-4">
+      <section className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white py-12 sm:py-16 md:py-20 px-4 text-center">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-3 sm:mb-4">
           Ready to Get Vaccinated at Home?
         </h2>
-        <p className="text-emerald-100 text-lg mb-8 max-w-xl mx-auto">
+        <p className="text-emerald-100 text-base sm:text-lg mb-6 sm:mb-8 max-w-xl mx-auto">
           Get a free, no-obligation quote in minutes. Serving Delhi, Noida & Gurgaon.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
           <Link
             href="/book"
-            className="inline-block bg-white text-emerald-700 font-bold px-10 py-4 rounded-full shadow hover:bg-emerald-50 transition-colors text-lg"
+            className="inline-block bg-white text-emerald-700 font-bold px-7 sm:px-10 py-3 sm:py-4 rounded-full shadow hover:bg-emerald-50 transition-colors text-base sm:text-lg"
           >
             Book Now
           </Link>
           <Link
             href="/contact"
-            className="inline-block border-2 border-white text-white font-bold px-10 py-4 rounded-full hover:bg-emerald-600 transition-colors text-lg"
+            className="inline-block border-2 border-white text-white font-bold px-7 sm:px-10 py-3 sm:py-4 rounded-full hover:bg-emerald-600 transition-colors text-base sm:text-lg"
           >
             Talk to Us
           </Link>

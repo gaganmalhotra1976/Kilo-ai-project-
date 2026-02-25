@@ -8,6 +8,13 @@ The Vaccine Panda home vaccination platform is fully built. The backend admin pa
 
 ## Recently Completed
 
+- [x] Mobile responsiveness overhaul: `src/app/page.tsx` — all sections now use responsive typography (`text-3xl sm:text-4xl md:text-5xl lg:text-6xl`), responsive spacing (`py-14 sm:py-20 md:py-24`), and responsive padding. Trust bar gap reduced on mobile. Vaccine grid cards smaller on mobile. Footer uses `grid-cols-2 md:grid-cols-4` with brand column spanning full width on mobile.
+
+- [x] Header fix: `src/components/Header.tsx` — removed invalid `xs` breakpoint (not in Tailwind 4). Logo now uses `hidden sm:inline` / `sm:hidden` correctly. Login button is now always visible on all screen sizes (removed `hidden sm:flex`). Removed duplicate Login link from mobile menu dropdown. Mobile menu is cleaner with no Login duplication.
+
+- [x] Footer mobile fix: `src/app/layout.tsx` — footer grid changed from `grid-cols-1 md:grid-cols-4` to `grid-cols-2 md:grid-cols-4`. Brand column spans `col-span-2 md:col-span-1` for full-width on mobile.
+
+
 - [x] Layout padding fix: `src/app/layout.tsx` — changed `pt-[88px] sm:pt-[100px]` to `pt-8 sm:pt-9`. The header is `sticky` (in normal document flow), so the content wrapper only needs to account for the fixed promo banner height (32px/36px), not the header height too. The previous value was creating a huge gap below the header on the home page.
 
 - [x] Login/Register page height fix: `src/app/login/page.tsx` and `src/app/register/page.tsx` — changed `min-h-screen` to `min-h-[calc(100vh-88px)] sm:min-h-[calc(100vh-100px)]` so the form centers correctly within the available viewport space (below the header + promo banner).

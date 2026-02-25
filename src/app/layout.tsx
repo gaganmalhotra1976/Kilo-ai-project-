@@ -32,9 +32,9 @@ export default function RootLayout({
         </div>
 
         {/* ── Footer ── */}
-        <footer className="bg-gray-900 text-gray-400 py-12 px-4 mt-0">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
+        <footer className="bg-gray-900 text-gray-400 py-10 sm:py-12 px-4 mt-0">
+          <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
+            <div className="col-span-2 md:col-span-1">
               <p className="text-white font-bold text-lg mb-2">🐼 The Vaccine Panda</p>
               <p className="text-sm leading-relaxed">
                 Certified home vaccination service in Delhi NCR. Cold-chain maintained. GST invoice included.
