@@ -8,6 +8,10 @@ The Vaccine Panda home vaccination platform is fully built. The backend admin pa
 
 ## Recently Completed
 
+- [x] Layout padding fix: `src/app/layout.tsx` — changed `pt-[88px] sm:pt-[100px]` to `pt-8 sm:pt-9`. The header is `sticky` (in normal document flow), so the content wrapper only needs to account for the fixed promo banner height (32px/36px), not the header height too. The previous value was creating a huge gap below the header on the home page.
+
+- [x] Login/Register page height fix: `src/app/login/page.tsx` and `src/app/register/page.tsx` — changed `min-h-screen` to `min-h-[calc(100vh-88px)] sm:min-h-[calc(100vh-100px)]` so the form centers correctly within the available viewport space (below the header + promo banner).
+
 - [x] Build error fix: `src/db/index.ts` — changed `createDatabase()` from eager (module-load-time) to lazy initialization via `Proxy`. The `@kilocode/app-builder-db` `createDatabase()` throws synchronously when `DB_URL`/`DB_TOKEN` env vars are absent; this caused `next build` to fail with "Missing database configuration" when collecting page data for `/api/auth/register`. Fix defers DB creation to first actual use (request time).
 
 - [x] Family members feature: Added customer family member management with name, DOB, gender, and vaccine card upload fields - includes database schema, migration, API routes, and admin UI
