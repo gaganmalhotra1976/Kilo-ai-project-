@@ -8,6 +8,8 @@ The Vaccine Panda home vaccination platform is fully built. The backend admin pa
 
 ## Recently Completed
 
+- [x] **Critical mobile fix**: `src/app/layout.tsx` — added missing `viewport` export (`width: "device-width", initialScale: 1`). Without this, mobile browsers render the page at ~980px desktop width, making ALL Tailwind responsive breakpoints (`sm:`, `md:`, etc.) completely ineffective. This was the root cause of "not responsive on phone".
+
 - [x] Mobile responsiveness overhaul: `src/app/page.tsx` — all sections now use responsive typography (`text-3xl sm:text-4xl md:text-5xl lg:text-6xl`), responsive spacing (`py-14 sm:py-20 md:py-24`), and responsive padding. Trust bar gap reduced on mobile. Vaccine grid cards smaller on mobile. Footer uses `grid-cols-2 md:grid-cols-4` with brand column spanning full width on mobile.
 
 - [x] Header fix: `src/components/Header.tsx` — removed invalid `xs` breakpoint (not in Tailwind 4). Logo now uses `hidden sm:inline` / `sm:hidden` correctly. Login button is now always visible on all screen sizes (removed `hidden sm:flex`). Removed duplicate Login link from mobile menu dropdown. Mobile menu is cleaner with no Login duplication.
