@@ -10,6 +10,7 @@ The Vaccine Panda home vaccination platform is fully built. The backend admin pa
 
 - [x] Floating CTA layer: sticky promo scroll banner, floating call buttons (9999109040, 9999771577), WhatsApp button, GPS area auto-detect, vaccine search popup — `src/components/FloatingCTA.tsx`
 - [x] Footer phone numbers updated to 9999109040 / 9999771577
+- [x] Floating buttons redesign: phone buttons are now icon-only (`w-12 h-12` circular) side-by-side at top; WhatsApp uses `bg-lime-400 text-gray-900` for contrast; tooltips added on phone buttons
 
 - [x] Base Next.js 16 setup with App Router
 - [x] TypeScript configuration with strict mode
