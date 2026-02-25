@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import Link from "next/link";
 import FloatingCTA from "@/components/FloatingCTA";
+import Header from "@/components/Header";
 import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
@@ -16,47 +17,13 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://vaccinepanda.com"),
 };
 
-const navLinks = [
-  { href: "/vaccines", label: "Vaccines" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
-  { href: "/login", label: "Login" },
-];
-
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={geist.variable}>
       <body className="antialiased font-sans bg-white text-gray-900">
-        {/* ── Navigation ── */}
-        <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2 font-extrabold text-emerald-700 text-xl">
-              🐼 The Vaccine Panda
-            </Link>
-            <nav className="flex items-center gap-6 text-sm font-medium text-gray-600">
-              {navLinks.map((l) => (
-                <Link key={l.href} href={l.href} className="hover:text-emerald-700 transition-colors">
-                  {l.label}
-                </Link>
-              ))}
-            </nav>
-            <Link
-              href="/login"
-              className="text-emerald-700 text-sm font-semibold px-4 py-2 border-2 border-emerald-600 rounded-full hover:bg-emerald-50 transition-colors"
-            >
-              Login
-            </Link>
-            <Link
-              href="/book"
-              className="bg-emerald-600 text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-emerald-700 transition-colors shadow"
-            >
-              Book Now
-            </Link>
-          </div>
-        </header>
+        <Header />
 
         {/* ── Page content ── */}
         {/* Offset for promo banner height (36px) */}
