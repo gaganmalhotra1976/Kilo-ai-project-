@@ -8,7 +8,9 @@ The Vaccine Panda home vaccination platform is fully built. The backend admin pa
 
 ## Recently Completed
 
-- [x] **Login error fix**: Created two missing API routes that `ProfileClient.tsx` was calling but didn't exist:
+- [x] **Login error fix v2**: Rewrote `ProfileClient.tsx` data loading from chained `.then()` to `async/await`. The old code redirected to `/login` on ANY fetch error (including server 500s from DB issues), creating a false login-failure loop. Now: only redirects on 401/404 from customer API (actual auth failure); server errors show error state instead; family-members and bookings fetches are independent and non-critical; logout properly clears all 3 localStorage keys. Also removed unused `err` catch variables in login and register pages. Committed as `8ed5c03`.
+
+- [x] **Login error fix v1**: Created two missing API routes that `ProfileClient.tsx` was calling but didn't exist:
   - `src/app/api/family-members/customer/[customerId]/route.ts` — GET family members by customer ID
   - `src/app/api/bookings/customer/[customerId]/route.ts` — GET bookings by customer ID
   After login, the profile page fetched these routes and got 404s, causing it to redirect back to `/login` — appearing as a "login error". Also fixed unused `password` variable in `src/app/api/customers/[id]/route.ts` (renamed to `_password`). Committed as `ac9ebbe`.
