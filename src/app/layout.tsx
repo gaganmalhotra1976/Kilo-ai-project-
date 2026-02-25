@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import Link from "next/link";
+import FloatingCTA from "@/components/FloatingCTA";
 import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
@@ -51,7 +52,11 @@ export default function RootLayout({
         </header>
 
         {/* ── Page content ── */}
-        {children}
+        {/* Offset for promo banner height (36px) */}
+        <div className="pt-9">
+          {children}
+        </div>
+        <FloatingCTA />
 
         {/* ── Footer ── */}
         <footer className="bg-gray-900 text-gray-400 py-12 px-4 mt-0">
@@ -80,7 +85,8 @@ export default function RootLayout({
             <div>
               <p className="text-white font-semibold mb-3">Contact</p>
               <ul className="space-y-2 text-sm">
-                <li>📞 <a href="tel:+911234567890" className="hover:text-white transition-colors">+91 12345 67890</a></li>
+                <li>📞 <a href="tel:+919999109040" className="hover:text-white transition-colors">9999109040</a></li>
+                <li>📞 <a href="tel:+919999771577" className="hover:text-white transition-colors">9999771577</a></li>
                 <li>✉️ <a href="mailto:hello@vaccinepanda.com" className="hover:text-white transition-colors">hello@vaccinepanda.com</a></li>
                 <li>📍 19/1 B Tilak Nagar, New Delhi</li>
               </ul>
