@@ -43,39 +43,39 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-9 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-200/50 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <header className="sticky top-9 md:top-9 z-40 bg-white/98 backdrop-blur-md border-b border-gray-100 shadow-sm">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4">
+        <div className="flex items-center justify-between h-14 md:h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 font-extrabold text-emerald-700 text-xl hover:opacity-90 transition-opacity">
+          <Link href="/" className="flex items-center gap-1.5 md:gap-2 font-extrabold text-emerald-700 text-lg md:text-xl hover:opacity-90 transition-opacity">
             <span className="text-2xl">🐼</span>
-            <span className="hidden sm:inline">The Vaccine Panda</span>
-            <span className="sm:hidden">Vaccine Panda</span>
+            <span className="hidden xs:inline text-sm md:text-base">The Vaccine Panda</span>
+            <span className="xs:hidden text-sm">Vaccine Panda</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-2" ref={dropdownRef}>
-            {navItems.map((item, index) => (
+          <nav className="hidden lg:flex items-center gap-1" ref={dropdownRef}>
+            {navItems.map((item) => (
               <div key={item.href} className="relative">
                 {item.hasDropdown ? (
                   <button
                     onClick={() => setDropdownOpen(dropdownOpen === 'menu' ? null : 'menu')}
-                    className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-700 hover:text-emerald-700 hover:bg-emerald-50/70 rounded-lg transition-all duration-200"
+                    className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all"
                   >
                     {item.label}
-                    <svg className={`w-4 h-4 transition-transform duration-200 ${dropdownOpen === 'menu' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-4 h-4 transition-transform ${dropdownOpen === 'menu' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
                 ) : (
-                  <Link href={item.href} className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-emerald-700 hover:bg-emerald-50/70 rounded-lg transition-all duration-200">
+                  <Link href={item.href} className="px-3 py-2 text-sm font-medium text-gray-700 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all">
                     {item.label}
                   </Link>
                 )}
 
                 {/* Dropdown Menu */}
                 {item.hasDropdown && dropdownOpen === 'menu' && (
-                  <div className="absolute left-1/2 -translate-x-1/2 mt-2 min-w-[180px] bg-white rounded-xl shadow-xl border border-gray-100 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute left-1/2 -translate-x-1/2 mt-2 min-w-[160px] bg-white rounded-xl shadow-xl border border-gray-100 py-2 animate-in fade-in slide-in-from-top-2">
                     {item.dropdownItems?.map((dropdownItem, idx) => (
                       <Link
                         key={idx}
@@ -84,7 +84,7 @@ export default function Header() {
                           setDropdownOpen(null);
                           setMobileMenuOpen(false);
                         }}
-                        className="block px-4 py-2.5 text-sm text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
+                        className="block px-4 py-2 text-sm text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
                       >
                         {dropdownItem.label}
                       </Link>
@@ -96,16 +96,16 @@ export default function Header() {
           </nav>
 
           {/* Right side - Login & Book Now */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <Link
               href="/login"
-              className="hidden sm:flex text-emerald-700 text-sm font-semibold px-5 py-2 border-2 border-emerald-600 rounded-full hover:bg-emerald-50 transition-colors"
+              className="hidden sm:flex text-emerald-700 text-xs md:text-sm font-semibold px-3 md:px-4 py-1.5 md:py-2 border-2 border-emerald-600 rounded-full hover:bg-emerald-50 transition-colors"
             >
               Login
             </Link>
             <Link
               href="/book"
-              className="bg-emerald-600 text-white text-sm font-semibold px-6 py-2.5 rounded-full hover:bg-emerald-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+              className="bg-emerald-600 text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-emerald-700 transition-all shadow-md"
             >
               Book Now
             </Link>
@@ -113,10 +113,10 @@ export default function Header() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+              className="lg:hidden p-2 text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
               aria-label="Toggle menu"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {mobileMenuOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 ) : (
@@ -129,19 +129,19 @@ export default function Header() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100 animate-in slide-in-from-top-2 duration-200">
+          <div className="lg:hidden py-3 md:py-4 border-t border-gray-100">
             <div className="flex flex-col gap-1">
               {navItems.map((item) => (
                 <div key={item.href}>
                   {item.hasDropdown ? (
                     <div className="space-y-1">
-                      <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">{item.label}</div>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wider">{item.label}</div>
                       {item.dropdownItems?.map((dropdownItem, idx) => (
                         <Link
                           key={idx}
                           href={dropdownItem.href}
                           onClick={() => setMobileMenuOpen(false)}
-                          className="block pl-6 pr-3 py-2.5 text-sm text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                          className="block pl-4 pr-2 py-2.5 text-sm text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
                         >
                           {dropdownItem.label}
                         </Link>
@@ -151,7 +151,7 @@ export default function Header() {
                     <Link
                       href={item.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block px-3 py-2.5 text-sm font-medium text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                      className="block px-2 py-2.5 text-sm font-medium text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
                     >
                       {item.label}
                     </Link>
@@ -161,7 +161,7 @@ export default function Header() {
               <Link
                 href="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block sm:hidden mt-2 px-3 py-2.5 text-sm font-semibold text-emerald-700 border-2 border-emerald-600 rounded-full text-center hover:bg-emerald-50 transition-colors"
+                className="sm:hidden mt-2 px-2 py-2.5 text-sm font-semibold text-emerald-700 border-2 border-emerald-600 rounded-full text-center hover:bg-emerald-50 transition-colors"
               >
                 Login
               </Link>

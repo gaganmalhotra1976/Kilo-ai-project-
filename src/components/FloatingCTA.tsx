@@ -101,7 +101,7 @@ export default function FloatingCTA() {
   return (
     <>
       {/* ── Publicity Scroll Banner ── */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-amber-400 text-amber-900 text-sm font-semibold overflow-hidden h-9 flex items-center">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-amber-400 text-amber-900 text-xs sm:text-sm font-semibold overflow-hidden h-8 sm:h-9 flex items-center">
         <div className="flex items-center gap-2 px-4 w-full">
           <span className="shrink-0 text-amber-700 font-bold">📢</span>
           <span
@@ -113,12 +113,12 @@ export default function FloatingCTA() {
       </div>
 
       {/* ── Floating Action Buttons — vertical strip on right side ── */}
-      <div className="fixed top-24 right-0 z-40 flex flex-col items-center gap-1 py-1">
+      <div className="fixed top-[88px] sm:top-24 right-0 z-40 flex flex-col items-center gap-0.5 sm:gap-1 py-0.5 sm:py-1">
         {/* Phone toggle button — expands to show 2 numbers */}
         <button
           onClick={() => setShowPhones((v) => !v)}
           title="Call us"
-          className="flex items-center justify-center w-11 h-11 bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-colors rounded-l-xl"
+          className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-colors rounded-l-xl"
           aria-label="Toggle phone numbers"
         >
           <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" aria-hidden="true">
@@ -132,7 +132,7 @@ export default function FloatingCTA() {
             <a
               href="tel:+919999109040"
               title="Call 9999109040"
-              className="flex items-center justify-center w-11 h-11 bg-emerald-500 hover:bg-emerald-600 text-white shadow-md transition-colors rounded-l-xl"
+              className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 bg-emerald-500 hover:bg-emerald-600 text-white shadow-md transition-colors rounded-l-xl"
               aria-label="Call 9999109040"
             >
               <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true">
@@ -142,7 +142,7 @@ export default function FloatingCTA() {
             <a
               href="tel:+919999771577"
               title="Call 9999771577"
-              className="flex items-center justify-center w-11 h-11 bg-emerald-500 hover:bg-emerald-600 text-white shadow-md transition-colors rounded-l-xl"
+              className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 bg-emerald-500 hover:bg-emerald-600 text-white shadow-md transition-colors rounded-l-xl"
               aria-label="Call 9999771577"
             >
               <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true">
@@ -158,7 +158,7 @@ export default function FloatingCTA() {
           target="_blank"
           rel="noopener noreferrer"
           title="WhatsApp us"
-          className="flex items-center justify-center w-11 h-11 bg-lime-400 hover:bg-lime-500 text-gray-900 shadow-md transition-colors rounded-l-xl"
+          className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 bg-lime-400 hover:bg-lime-500 text-gray-900 shadow-md transition-colors rounded-l-xl"
           aria-label="WhatsApp us"
         >
           <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" aria-hidden="true">
@@ -170,7 +170,7 @@ export default function FloatingCTA() {
         <button
           onClick={() => setShowPopup(true)}
           title="Find Vaccines"
-          className="flex items-center justify-center w-11 h-11 bg-white border-2 border-emerald-600 text-emerald-700 shadow-md hover:bg-emerald-50 transition-colors rounded-l-xl"
+          className="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 bg-white border-2 border-emerald-600 text-emerald-700 shadow-md hover:bg-emerald-50 transition-colors rounded-l-xl"
           aria-label="Search vaccines or find your area"
         >
           <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" aria-hidden="true">
