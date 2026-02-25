@@ -101,7 +101,7 @@ export default function FloatingCTA() {
   return (
     <>
       {/* ── Publicity Scroll Banner ── */}
-      <div className="fixed top-16 left-0 right-0 z-40 bg-amber-400 text-amber-900 text-sm font-semibold overflow-hidden h-9 flex items-center">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-amber-400 text-amber-900 text-sm font-semibold overflow-hidden h-9 flex items-center">
         <div className="flex items-center gap-2 px-4 w-full">
           <span className="shrink-0 text-amber-700 font-bold">📢</span>
           <span
@@ -113,7 +113,7 @@ export default function FloatingCTA() {
       </div>
 
       {/* ── Floating Action Buttons — vertical strip on right side ── */}
-      <div className="fixed top-16 right-0 z-50 flex flex-col items-center gap-1 py-1">
+      <div className="fixed top-24 right-0 z-40 flex flex-col items-center gap-1 py-1">
         {/* Phone toggle button — expands to show 2 numbers */}
         <button
           onClick={() => setShowPhones((v) => !v)}

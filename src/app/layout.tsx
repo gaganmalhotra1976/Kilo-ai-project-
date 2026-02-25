@@ -23,14 +23,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={geist.variable}>
       <body className="antialiased font-sans bg-white text-gray-900">
+        <FloatingCTA />
         <Header />
 
         {/* ── Page content ── */}
-        {/* Offset for promo banner height (36px) */}
-        <div className="pt-9">
+        <div className="pt-28">
           {children}
         </div>
-        <FloatingCTA />
 
         {/* ── Footer ── */}
         <footer className="bg-gray-900 text-gray-400 py-12 px-4 mt-0">
