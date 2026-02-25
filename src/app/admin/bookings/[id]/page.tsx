@@ -40,6 +40,11 @@ export default async function BookingDetailPage({
   let vaccines: string[] = [];
   try { vaccines = JSON.parse(booking.vaccinesRequested); } catch { vaccines = [booking.vaccinesRequested]; }
 
+  let patientNames: string[] = [];
+  if (booking.patientNames) {
+    try { patientNames = JSON.parse(booking.patientNames); } catch { patientNames = [booking.patientNames]; }
+  }
+
   return (
     <div className="space-y-6 max-w-4xl">
       {/* Header */}
@@ -122,6 +127,21 @@ export default async function BookingDetailPage({
               <dt className="text-gray-400 w-28 flex-shrink-0">Pref. Time</dt>
               <dd className="text-gray-900 capitalize">{booking.preferredTime ?? "—"}</dd>
             </div>
+            {patientNames.length > 0 && (
+              <div className="flex gap-3">
+                <dt className="text-gray-400 w-28 flex-shrink-0">Patients</dt>
+                <dd className="text-gray-900">
+                  <ul className="space-y-1">
+                    {patientNames.map((name) => (
+                      <li key={name} className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                        {name}
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            )}
             <div className="flex gap-3">
               <dt className="text-gray-400 w-28 flex-shrink-0">Vaccines</dt>
               <dd className="text-gray-900">

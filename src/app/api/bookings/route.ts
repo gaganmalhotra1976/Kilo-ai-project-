@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
       bookingType,
       preferredDate,
       preferredTime,
+      patientNames,
     } = body;
 
     if (!customerName || !customerPhone || !address || !vaccinesRequested?.length) {
@@ -90,6 +91,7 @@ export async function POST(req: NextRequest) {
         bookingType: bookingType || "individual",
         preferredDate: preferredDate || null,
         preferredTime: preferredTime || null,
+        patientNames: patientNames ? JSON.stringify(patientNames) : null,
         status: "pending",
       })
       .returning();

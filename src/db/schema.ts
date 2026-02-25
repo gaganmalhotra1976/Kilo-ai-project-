@@ -31,6 +31,7 @@ export const bookings = sqliteTable("bookings", {
   bookingType: text("booking_type").notNull().default("individual"), // individual | family | corporate
   preferredDate: text("preferred_date"), // ISO date string
   preferredTime: text("preferred_time"),
+  patientNames: text("patient_names"), // JSON array of patient names (self + selected family members)
   status: text("status").notNull().default("pending"), // pending | quoted | confirmed | completed | cancelled
   adminNotes: text("admin_notes"),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
