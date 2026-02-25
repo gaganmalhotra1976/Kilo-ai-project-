@@ -33,7 +33,7 @@ export default function LoginPage() {
         const data = await response.json();
         setError(data.error || "Invalid credentials");
       }
-    } catch (err) {
+    } catch {
       setError("Login failed. Please try again.");
     } finally {
       setIsLoading(false);

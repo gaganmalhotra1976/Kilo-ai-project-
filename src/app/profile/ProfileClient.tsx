@@ -46,46 +46,61 @@ export function ProfileClient() {
       return;
     }
 
-    // Fetch customer data
-    fetch(`/api/customers/${customerId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch customer");
-        return res.json();
-      })
-      .then((data) => {
-        setCustomer(data);
-        return fetch(`/api/family-members/customer/${customerId}`);
-      })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch family members");
-        return res.json();
-      })
-      .then((data) => {
-        setFamilyMembers(data);
-        return fetch(`/api/bookings/customer/${customerId}`);
-      })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch bookings");
-        return res.json();
-      })
-      .then((data) => {
-        setBookings(data);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-        // If unauthorized, redirect to login
-        if (error.message.includes("401") || error.message.includes("Failed to fetch customer")) {
+    async function loadProfile() {
+      try {
+        // Fetch customer data first — this is the critical auth check
+        const customerRes = await fetch(`/api/customers/${customerId}`);
+        if (customerRes.status === 401 || customerRes.status === 404) {
+          // Customer not found or unauthorized — clear session and redirect
+          localStorage.removeItem("authToken");
           localStorage.removeItem("customerId");
+          localStorage.removeItem("customerName");
           router.push("/login");
+          return;
         }
-      })
-      .finally(() => {
+        if (!customerRes.ok) {
+          // Server error — don't redirect, just show error state
+          console.error("Failed to fetch customer:", customerRes.status);
+          return;
+        }
+        const customerData = await customerRes.json();
+        setCustomer(customerData);
+
+        // Fetch family members — non-critical, don't redirect on failure
+        try {
+          const membersRes = await fetch(`/api/family-members/customer/${customerId}`);
+          if (membersRes.ok) {
+            const membersData = await membersRes.json();
+            setFamilyMembers(membersData);
+          }
+        } catch (e) {
+          console.error("Failed to fetch family members:", e);
+        }
+
+        // Fetch bookings — non-critical, don't redirect on failure
+        try {
+          const bookingsRes = await fetch(`/api/bookings/customer/${customerId}`);
+          if (bookingsRes.ok) {
+            const bookingsData = await bookingsRes.json();
+            setBookings(bookingsData);
+          }
+        } catch (e) {
+          console.error("Failed to fetch bookings:", e);
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+      } finally {
         setIsLoading(false);
-      });
+      }
+    }
+
+    loadProfile();
   }, [router]);
 
   const handleLogout = () => {
+    localStorage.removeItem("authToken");
     localStorage.removeItem("customerId");
+    localStorage.removeItem("customerName");
     router.push("/");
   };
 
