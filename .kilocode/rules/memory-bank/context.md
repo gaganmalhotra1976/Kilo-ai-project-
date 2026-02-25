@@ -8,6 +8,19 @@ The Vaccine Panda home vaccination platform is fully built. The backend admin pa
 
 ## Recently Completed
 
+- [x] **Google OAuth + email login + Book Now auth guard**: 
+  - `BookingForm.tsx` now redirects to `/login?redirect=/book` if user is not logged in (auth guard on booking flow)
+  - Installed `next-auth@beta` (v5); created `src/auth.ts` with Google provider; created `/api/auth/[...nextauth]/route.ts`
+  - Created `/api/auth/google-callback/route.ts` — server-side handler that reads NextAuth session after Google OAuth, creates/finds customer in DB, generates our JWT, redirects to `/auth/google-success`
+  - Created `/auth/google-success/page.tsx` — client page that sets localStorage (authToken, customerId, customerName) from URL params, then redirects to profile or original destination
+  - Login page now accepts **email OR phone** (auto-detects by `@`), has Google sign-in button, handles `?redirect=` param
+  - Register page now has email field + Google sign-in button + handles `?redirect=` param
+  - `/api/auth/login` updated to accept `email` OR `phone` as identifier (uses `or()` query)
+  - `/api/auth/register` updated to accept `email` field; phone is now optional (either phone or email required)
+  - Google OAuth requires `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` env vars to be set in deployment
+
+- [x] **Session persistence fix**: Login/register pages now check `localStorage.getItem("authToken")` on mount — if a session exists, they immediately redirect to `/profile` instead of showing the form. Shows a spinner while checking to avoid flash. `Header.tsx` now reads auth state from localStorage and shows the user's first name + "Logout" button when logged in, or "Login" when not. Logout clears all 3 localStorage keys and redirects to home. Also listens to `storage` events for cross-tab sync. Committed as `bfc4100`.
+
 - [x] **Family member selection in booking form**: When a logged-in user visits `/book`, the form now fetches their family members and shows a "Who is this booking for?" section with checkboxes (Myself + each family member). Selected patient names are stored in a new `patientNames` JSON column on the `bookings` table. The admin booking detail page now shows a "Patients" row listing the selected names. DB migration `0003_patient_names.sql` adds the column. Non-logged-in users still see the original "Number of People" field. Committed as `9b48fca`.
 
 - [x] **Login error fix v2**: Rewrote `ProfileClient.tsx` data loading from chained `.then()` to `async/await`. The old code redirected to `/login` on ANY fetch error (including server 500s from DB issues), creating a false login-failure loop. Now: only redirects on 401/404 from customer API (actual auth failure); server errors show error state instead; family-members and bookings fetches are independent and non-critical; logout properly clears all 3 localStorage keys. Also removed unused `err` catch variables in login and register pages. Committed as `8ed5c03`.

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { customers } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -10,18 +10,28 @@ const JWT_SECRET = process.env.JWT_SECRET || "vaccine-panda-dev-secret-change-in
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { phone, password } = body;
+    // Accept either phone or email as the identifier
+    const { phone, email, password } = body;
+    const identifier = email || phone;
 
-    if (!phone || !password) {
+    if (!identifier || !password) {
       return NextResponse.json(
-        { error: "Phone and password are required" },
+        { error: "Email/phone and password are required" },
         { status: 400 }
       );
     }
 
-    const customer = await db.query.customers.findFirst({
-      where: eq(customers.phone, phone),
-    });
+    // Look up customer by email OR phone
+    const customer = await db
+      .select()
+      .from(customers)
+      .where(
+        or(
+          eq(customers.phone, identifier),
+          eq(customers.email, identifier)
+        )
+      )
+      .get();
 
     if (!customer) {
       return NextResponse.json(

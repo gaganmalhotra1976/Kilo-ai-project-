@@ -35,6 +35,7 @@ export default function BookingForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedVaccines, setSelectedVaccines] = useState<string[]>([]);
+  const [authChecking, setAuthChecking] = useState(true);
 
   // Family member selection state
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
@@ -43,18 +44,28 @@ export default function BookingForm() {
   const [customerName, setCustomerName] = useState("");
 
   useEffect(() => {
+    const token = localStorage.getItem("authToken");
     const customerId = localStorage.getItem("customerId");
     const storedName = localStorage.getItem("customerName");
+
+    if (!token) {
+      // Not logged in — redirect to login with return URL
+      router.replace("/login?redirect=/book");
+      return;
+    }
+
+    setIsLoggedIn(true);
+    setCustomerName(storedName || "Myself");
+    setAuthChecking(false);
+
     if (customerId) {
-      setIsLoggedIn(true);
-      setCustomerName(storedName || "Myself");
       // Fetch family members
       fetch(`/api/family-members/customer/${customerId}`)
         .then((res) => (res.ok ? res.json() : []))
         .then((data: FamilyMember[]) => setFamilyMembers(data))
         .catch(() => setFamilyMembers([]));
     }
-  }, []);
+  }, [router]);
 
   function toggleVaccine(v: string) {
     setSelectedVaccines((prev) =>
@@ -127,6 +138,15 @@ export default function BookingForm() {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       setLoading(false);
     }
+  }
+
+  // Show spinner while checking auth (avoids flash of form before redirect)
+  if (authChecking) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
   return (
