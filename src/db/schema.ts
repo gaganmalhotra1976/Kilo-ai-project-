@@ -76,3 +76,21 @@ export const vaccines = sqliteTable("vaccines", {
     () => new Date()
   ),
 });
+
+// ── Family Members ──────────────────────────────────────────────────────────
+export const familyMembers = sqliteTable("family_members", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  customerId: integer("customer_id")
+    .notNull()
+    .references(() => customers.id),
+  name: text("name").notNull(),
+  dateOfBirth: text("date_of_birth"), // ISO date string
+  gender: text("gender"), // male | female | other
+  vaccineCardUrl: text("vaccine_card_url"), // URL to uploaded vaccine card
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+});

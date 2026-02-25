@@ -80,10 +80,10 @@ export default async function AdminCustomersPage() {
                     </td>
                     <td className="px-5 py-4">
                       <Link
-                        href={`/admin/bookings?customerId=${c.id}`}
+                        href={`/admin/customers/${c.id}`}
                         className="text-emerald-600 font-medium hover:underline text-xs"
                       >
-                        View bookings →
+                        View details →
                       </Link>
                     </td>
                   </tr>
