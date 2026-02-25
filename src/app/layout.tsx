@@ -36,13 +36,19 @@ export default function RootLayout({
             <Link href="/" className="flex items-center gap-2 font-extrabold text-emerald-700 text-xl">
               🐼 The Vaccine Panda
             </Link>
-            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
+            <nav className="flex items-center gap-6 text-sm font-medium text-gray-600">
               {navLinks.map((l) => (
                 <Link key={l.href} href={l.href} className="hover:text-emerald-700 transition-colors">
                   {l.label}
                 </Link>
               ))}
             </nav>
+            <Link
+              href="/login"
+              className="text-emerald-700 text-sm font-semibold px-4 py-2 border-2 border-emerald-600 rounded-full hover:bg-emerald-50 transition-colors"
+            >
+              Login
+            </Link>
             <Link
               href="/book"
               className="bg-emerald-600 text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-emerald-700 transition-colors shadow"
