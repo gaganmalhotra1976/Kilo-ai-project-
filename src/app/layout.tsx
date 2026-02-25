@@ -21,6 +21,7 @@ const navLinks = [
   { href: "/pricing", label: "Pricing" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
+  { href: "/login", label: "Login" },
 ];
 
 export default function RootLayout({
