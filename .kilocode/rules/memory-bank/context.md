@@ -8,6 +8,8 @@ The Vaccine Panda home vaccination platform is fully built. The backend admin pa
 
 ## Recently Completed
 
+- [x] **Family member selection in booking form**: When a logged-in user visits `/book`, the form now fetches their family members and shows a "Who is this booking for?" section with checkboxes (Myself + each family member). Selected patient names are stored in a new `patientNames` JSON column on the `bookings` table. The admin booking detail page now shows a "Patients" row listing the selected names. DB migration `0003_patient_names.sql` adds the column. Non-logged-in users still see the original "Number of People" field. Committed as `9b48fca`.
+
 - [x] **Login error fix v2**: Rewrote `ProfileClient.tsx` data loading from chained `.then()` to `async/await`. The old code redirected to `/login` on ANY fetch error (including server 500s from DB issues), creating a false login-failure loop. Now: only redirects on 401/404 from customer API (actual auth failure); server errors show error state instead; family-members and bookings fetches are independent and non-critical; logout properly clears all 3 localStorage keys. Also removed unused `err` catch variables in login and register pages. Committed as `8ed5c03`.
 
 - [x] **Login error fix v1**: Created two missing API routes that `ProfileClient.tsx` was calling but didn't exist:

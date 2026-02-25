@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface NavItem {
   label: string;
@@ -11,9 +12,26 @@ interface NavItem {
 }
 
 export default function Header() {
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [customerName, setCustomerName] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Check auth state from localStorage
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem("authToken");
+      const name = localStorage.getItem("customerName");
+      setIsLoggedIn(!!token);
+      setCustomerName(name || "");
+    };
+    checkAuth();
+    // Re-check when storage changes (e.g. login/logout in another tab)
+    window.addEventListener("storage", checkAuth);
+    return () => window.removeEventListener("storage", checkAuth);
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -25,6 +43,17 @@ export default function Header() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("customerId");
+    localStorage.removeItem("customerName");
+    setIsLoggedIn(false);
+    setCustomerName("");
+    setDropdownOpen(null);
+    setMobileMenuOpen(false);
+    router.push("/");
+  };
 
   const navItems: NavItem[] = [
     { label: "Vaccines", href: "/vaccines" },
@@ -97,14 +126,32 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Right side - Login & Book Now */}
+          {/* Right side - Auth buttons & Book Now */}
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
-            <Link
-              href="/login"
-              className="text-emerald-700 text-xs md:text-sm font-semibold px-2.5 sm:px-3 md:px-4 py-1.5 md:py-2 border-2 border-emerald-600 rounded-full hover:bg-emerald-50 transition-colors whitespace-nowrap"
-            >
-              Login
-            </Link>
+            {isLoggedIn ? (
+              <>
+                <Link
+                  href="/profile"
+                  className="text-emerald-700 text-xs md:text-sm font-semibold px-2.5 sm:px-3 md:px-4 py-1.5 md:py-2 border-2 border-emerald-600 rounded-full hover:bg-emerald-50 transition-colors whitespace-nowrap max-w-[100px] sm:max-w-[140px] truncate"
+                  title={customerName || "My Profile"}
+                >
+                  {customerName ? customerName.split(" ")[0] : "Profile"}
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="text-gray-600 text-xs md:text-sm font-medium px-2.5 sm:px-3 py-1.5 md:py-2 hover:text-red-600 transition-colors whitespace-nowrap"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="text-emerald-700 text-xs md:text-sm font-semibold px-2.5 sm:px-3 md:px-4 py-1.5 md:py-2 border-2 border-emerald-600 rounded-full hover:bg-emerald-50 transition-colors whitespace-nowrap"
+              >
+                Login
+              </Link>
+            )}
             <Link
               href="/book"
               className="bg-emerald-600 text-white text-xs md:text-sm font-semibold px-3 sm:px-4 md:px-5 py-1.5 md:py-2 rounded-full hover:bg-emerald-700 transition-all shadow-md whitespace-nowrap"
@@ -160,6 +207,35 @@ export default function Header() {
                   )}
                 </div>
               ))}
+
+              {/* Mobile auth section */}
+              <div className="border-t border-gray-100 mt-2 pt-2">
+                {isLoggedIn ? (
+                  <>
+                    <Link
+                      href="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-2 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                    >
+                      👤 {customerName || "My Profile"}
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-2 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-2 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                  >
+                    Login
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         )}
