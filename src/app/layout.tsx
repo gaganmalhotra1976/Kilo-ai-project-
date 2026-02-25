@@ -27,7 +27,7 @@ export default function RootLayout({
         <Header />
 
         {/* ── Page content ── */}
-        <div className="pt-[88px] sm:pt-[100px]">
+        <div className="pt-8 sm:pt-9">
           {children}
         </div>
 
