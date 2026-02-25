@@ -8,6 +8,8 @@ The Vaccine Panda home vaccination platform is fully built. The backend admin pa
 
 ## Recently Completed
 
+- [x] Build error fix: `src/db/index.ts` — changed `createDatabase()` from eager (module-load-time) to lazy initialization via `Proxy`. The `@kilocode/app-builder-db` `createDatabase()` throws synchronously when `DB_URL`/`DB_TOKEN` env vars are absent; this caused `next build` to fail with "Missing database configuration" when collecting page data for `/api/auth/register`. Fix defers DB creation to first actual use (request time).
+
 - [x] Family members feature: Added customer family member management with name, DOB, gender, and vaccine card upload fields - includes database schema, migration, API routes, and admin UI
 - [x] Floating CTA layer: sticky promo scroll banner, floating call buttons (9999109040, 9999771577), WhatsApp button, GPS area auto-detect, vaccine search popup — `src/components/FloatingCTA.tsx`
 - [x] Footer phone numbers updated to 9999109040 / 9999771577
