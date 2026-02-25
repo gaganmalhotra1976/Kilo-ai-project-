@@ -113,7 +113,7 @@ export default function FloatingCTA() {
       </div>
 
       {/* ── Floating Action Buttons — vertical strip on right side ── */}
-      <div className="fixed top-[88px] sm:top-24 right-0 z-40 flex flex-col items-center gap-0.5 sm:gap-1 py-0.5 sm:py-1">
+      <div className="fixed top-[88px] sm:top-[100px] right-0 z-40 flex flex-col items-center gap-0.5 sm:gap-1 py-0.5 sm:py-1">
         {/* Phone toggle button — expands to show 2 numbers */}
         <button
           onClick={() => setShowPhones((v) => !v)}
