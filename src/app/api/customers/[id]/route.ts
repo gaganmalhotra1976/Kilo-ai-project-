@@ -31,7 +31,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     }
 
     // Don't return password in response
-    const { password, ...customerWithoutPassword } = customer;
+    const { password: _password, ...customerWithoutPassword } = customer;
 
     return NextResponse.json(customerWithoutPassword);
   } catch (error) {
