@@ -104,9 +104,93 @@ function DefaultHero() {
   );
 }
 
+// Demo data shown when DB tables are empty
+const demoVideos = [
+  {
+    id: 1,
+    title: "Why Home Vaccination is the Future of Healthcare",
+    videoId: "dQw4w9WgXcQ",
+    description: "Learn how home vaccination is making healthcare more accessible for families.",
+    sortOrder: 1,
+    isActive: true,
+  },
+  {
+    id: 2,
+    title: "Cold Chain Explained: How We Keep Your Vaccines Safe",
+    videoId: "dQw4w9WgXcQ",
+    description: "Our certified cold-chain process ensures every vaccine reaches you at full efficacy.",
+    sortOrder: 2,
+    isActive: true,
+  },
+  {
+    id: 3,
+    title: "Flu Season 2024: Who Should Get Vaccinated?",
+    videoId: "dQw4w9WgXcQ",
+    description: "Expert advice on flu vaccination for children, seniors, and high-risk groups.",
+    sortOrder: 3,
+    isActive: true,
+  },
+];
+
+const demoCategories = [
+  {
+    id: 1,
+    name: "Baby & Infant Vaccines",
+    description: "Essential vaccines for newborns and infants (0–12 months)",
+    icon: "👶",
+    sortOrder: 1,
+    isActive: true,
+    items: [
+      { id: 1, categoryId: 1, name: "BCG (Tuberculosis)", description: "Protects against tuberculosis", ageGroup: "At birth", dosesRequired: 1, notes: "Single dose", sortOrder: 1, isActive: true },
+      { id: 2, categoryId: 1, name: "Hepatitis B", description: "Protects against Hepatitis B virus", ageGroup: "0–6 months", dosesRequired: 3, notes: "3-dose series", sortOrder: 2, isActive: true },
+      { id: 3, categoryId: 1, name: "OPV (Polio)", description: "Oral polio vaccine", ageGroup: "0–5 years", dosesRequired: 4, notes: "Multiple doses", sortOrder: 3, isActive: true },
+      { id: 4, categoryId: 1, name: "DTP (Diphtheria, Tetanus, Pertussis)", description: "Combined protection against 3 diseases", ageGroup: "6 weeks+", dosesRequired: 5, notes: "Primary + boosters", sortOrder: 4, isActive: true },
+    ],
+  },
+  {
+    id: 2,
+    name: "Child Vaccines (1–5 years)",
+    description: "Recommended vaccines for toddlers and young children",
+    icon: "🧒",
+    sortOrder: 2,
+    isActive: true,
+    items: [
+      { id: 5, categoryId: 2, name: "MMR (Measles, Mumps, Rubella)", description: "Triple protection against common childhood diseases", ageGroup: "12–15 months", dosesRequired: 2, notes: "2-dose series", sortOrder: 1, isActive: true },
+      { id: 6, categoryId: 2, name: "Varicella (Chickenpox)", description: "Prevents chickenpox infection", ageGroup: "12–18 months", dosesRequired: 2, notes: "2 doses", sortOrder: 2, isActive: true },
+      { id: 7, categoryId: 2, name: "Typhoid Conjugate Vaccine", description: "Protection against typhoid fever", ageGroup: "9 months+", dosesRequired: 1, notes: "Booster every 3 years", sortOrder: 3, isActive: true },
+    ],
+  },
+  {
+    id: 3,
+    name: "Adult & Senior Vaccines",
+    description: "Vaccines recommended for adults and elderly individuals",
+    icon: "👨‍👩‍👧",
+    sortOrder: 3,
+    isActive: true,
+    items: [
+      { id: 8, categoryId: 3, name: "Influenza (Flu Shot)", description: "Annual flu vaccine for all age groups", ageGroup: "6 months+", dosesRequired: 1, notes: "Annual dose", sortOrder: 1, isActive: true },
+      { id: 9, categoryId: 3, name: "Pneumococcal (PCV)", description: "Protects against pneumonia and meningitis", ageGroup: "65+ years", dosesRequired: 2, notes: "Recommended for seniors", sortOrder: 2, isActive: true },
+      { id: 10, categoryId: 3, name: "Hepatitis A", description: "Protection against Hepatitis A virus", ageGroup: "All adults", dosesRequired: 2, notes: "2-dose series", sortOrder: 3, isActive: true },
+    ],
+  },
+  {
+    id: 4,
+    name: "Travel Vaccines",
+    description: "Vaccines required or recommended for international travel",
+    icon: "✈️",
+    sortOrder: 4,
+    isActive: true,
+    items: [
+      { id: 11, categoryId: 4, name: "Yellow Fever", description: "Required for travel to certain African and South American countries", ageGroup: "9 months+", dosesRequired: 1, notes: "Valid for life", sortOrder: 1, isActive: true },
+      { id: 12, categoryId: 4, name: "Japanese Encephalitis", description: "For travel to rural Asia", ageGroup: "All ages", dosesRequired: 2, notes: "2-dose series", sortOrder: 2, isActive: true },
+      { id: 13, categoryId: 4, name: "Meningococcal", description: "Required for Hajj/Umrah pilgrims", ageGroup: "All ages", dosesRequired: 1, notes: "Booster every 5 years", sortOrder: 3, isActive: true },
+    ],
+  },
+];
+
 export default async function HomePage() {
   // Fetch all CMS data in parallel
-  const [heroBanners, videos, categories, categoryItems] = await Promise.all([
+  const [heroBanners, dbVideos, dbCategories, categoryItems] = await Promise.all([
     db.select().from(banners).where(eq(banners.isActive, true)).orderBy(asc(banners.sortOrder)),
     db.select().from(youtubeVideos).where(eq(youtubeVideos.isActive, true)).orderBy(asc(youtubeVideos.sortOrder)),
     db.select().from(vaccineCategories).where(eq(vaccineCategories.isActive, true)).orderBy(asc(vaccineCategories.sortOrder)),
@@ -114,10 +198,14 @@ export default async function HomePage() {
   ]);
 
   // Attach items to categories
-  const categoriesWithItems = categories.map((cat) => ({
+  const dbCategoriesWithItems = dbCategories.map((cat) => ({
     ...cat,
     items: categoryItems.filter((item) => item.categoryId === cat.id),
   }));
+
+  // Use DB data if available, otherwise fall back to demo data so sections always show
+  const videos = dbVideos.length > 0 ? dbVideos : demoVideos;
+  const categoriesWithItems = dbCategoriesWithItems.length > 0 ? dbCategoriesWithItems : demoCategories;
 
   return (
     <main className="min-h-screen bg-white">
@@ -164,12 +252,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── Vaccine Categories Accordion (dynamic from DB) ── */}
-      {categoriesWithItems.length > 0 && (
-        <div className="bg-gray-50">
-          <VaccineCategoriesAccordion categories={categoriesWithItems} />
-        </div>
-      )}
+      {/* ── Vaccine Categories Accordion (dynamic from DB, with demo fallback) ── */}
+      <div className="bg-gray-50">
+        <VaccineCategoriesAccordion categories={categoriesWithItems} />
+      </div>
 
       {/* ── Features ── */}
       <section className="bg-white py-12 sm:py-16 md:py-20 px-4">
@@ -191,8 +277,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── YouTube Section (dynamic from DB) ── */}
-      {videos.length > 0 && <YouTubeSection videos={videos} />}
+      {/* ── YouTube Section (dynamic from DB, with demo fallback) ── */}
+      <YouTubeSection videos={videos} />
 
       {/* ── Testimonials ── */}
       <section className="bg-emerald-50 py-12 sm:py-16 md:py-20 px-4">
