@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import Link from "next/link";
 import FloatingCTA from "@/components/FloatingCTA";
 import Header from "@/components/Header";
+import PromoPopup from "@/components/PromoPopup";
 import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
@@ -30,6 +31,7 @@ export default function RootLayout({
     <html lang="en" className={geist.variable}>
       <body className="antialiased font-sans bg-white text-gray-900">
         <FloatingCTA />
+        <PromoPopup />
         <Header />
 
         {/* ── Page content ── */}

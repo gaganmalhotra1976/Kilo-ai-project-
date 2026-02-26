@@ -96,3 +96,81 @@ export const familyMembers = sqliteTable("family_members", {
     () => new Date()
   ),
 });
+
+// ── Hero Banners ────────────────────────────────────────────────────────────
+export const banners = sqliteTable("banners", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  headline: text("headline").notNull(),
+  subtext: text("subtext"),
+  imageUrl: text("image_url"),
+  buttonText: text("button_text"),
+  buttonLink: text("button_link"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+});
+
+// ── YouTube Videos ──────────────────────────────────────────────────────────
+export const youtubeVideos = sqliteTable("youtube_videos", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  title: text("title").notNull(),
+  videoId: text("video_id").notNull(), // YouTube video ID (e.g. "dQw4w9WgXcQ")
+  description: text("description"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+});
+
+// ── Promo Popup ─────────────────────────────────────────────────────────────
+export const promoPopup = sqliteTable("promo_popup", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  title: text("title").notNull(),
+  content: text("content"), // Rich text / HTML
+  imageUrl: text("image_url"),
+  buttonText: text("button_text"),
+  buttonLink: text("button_link"),
+  expiresAt: text("expires_at"), // ISO date string
+  showOnce: integer("show_once", { mode: "boolean" }).notNull().default(true), // once per session
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+});
+
+// ── Vaccine Categories ──────────────────────────────────────────────────────
+export const vaccineCategories = sqliteTable("vaccine_categories", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  description: text("description"),
+  icon: text("icon"), // emoji or icon name
+  sortOrder: integer("sort_order").notNull().default(0),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+});
+
+// ── Vaccine Category Items ──────────────────────────────────────────────────
+export const vaccineCategoryItems = sqliteTable("vaccine_category_items", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  categoryId: integer("category_id")
+    .notNull()
+    .references(() => vaccineCategories.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  ageGroup: text("age_group"),
+  dosesRequired: integer("doses_required").default(1),
+  notes: text("notes"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+});

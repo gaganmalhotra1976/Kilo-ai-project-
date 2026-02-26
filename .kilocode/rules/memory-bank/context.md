@@ -8,6 +8,21 @@ The Vaccine Panda home vaccination platform is fully built. The backend admin pa
 
 ## Recently Completed
 
+- [x] **CMS Features — Hero Carousel, YouTube Section, Promo Popup, Vaccine Categories**:
+  - Added 5 new DB tables: `banners`, `youtube_videos`, `promo_popup`, `vaccine_categories`, `vaccine_category_items` (migration `0004_cms_tables.sql`)
+  - Created API routes: `/api/banners`, `/api/youtube-videos`, `/api/promo-popup`, `/api/vaccine-categories`, `/api/vaccine-category-items` (all with CRUD)
+  - Admin-only endpoints: `/api/admin/banners`, `/api/admin/promo-popup`
+  - Built `HeroCarousel.tsx` — auto-scrolling carousel with arrows, dots, slide counter; falls back to static hero if no banners in DB
+  - Built `YouTubeSection.tsx` — responsive grid of YouTube video thumbnails with lightbox modal player
+  - Built `PromoPopup.tsx` — floating modal popup, session-based (once per session), fetches from `/api/promo-popup`, respects expiry date
+  - Built `VaccineCategoriesAccordion.tsx` — smooth accordion with category icons, vaccine item cards with age group/doses/notes badges
+  - Updated `src/app/page.tsx` — now a Server Component that fetches all CMS data and passes to client components; falls back gracefully when DB is empty
+  - Updated `src/app/layout.tsx` — added `<PromoPopup />` (appears on all pages)
+  - Updated `src/app/admin/layout.tsx` — added 4 new nav items: Hero Banners, YouTube Videos, Promo Popup, Vaccine Categories
+  - Created admin pages: `/admin/banners`, `/admin/youtube-videos`, `/admin/promo-popup`, `/admin/vaccine-categories`
+  - Fixed lint error: unescaped apostrophe in `page.tsx` (`Here's` → `Here&apos;s`)
+  - `bun typecheck` ✅ `bun lint` ✅
+
 - [x] **Google OAuth + email login + Book Now auth guard**: 
   - `BookingForm.tsx` now redirects to `/login?redirect=/book` if user is not logged in (auth guard on booking flow)
   - Installed `next-auth@beta` (v5); created `src/auth.ts` with Google provider; created `/api/auth/[...nextauth]/route.ts`

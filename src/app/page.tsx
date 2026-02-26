@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { db } from "@/db";
+import { banners, youtubeVideos, vaccineCategories, vaccineCategoryItems } from "@/db/schema";
+import { eq, asc } from "drizzle-orm";
+import HeroCarousel from "@/components/HeroCarousel";
+import YouTubeSection from "@/components/YouTubeSection";
+import VaccineCategoriesAccordion from "@/components/VaccineCategoriesAccordion";
 
 export const metadata: Metadata = {
   title: "The Vaccine Panda — Home Vaccination Delhi NCR",
   description:
     "Certified nurses bring vaccines to your doorstep in Delhi, Noida & Gurgaon. Book a home vaccination visit today.",
 };
+
+export const dynamic = "force-dynamic";
 
 const features = [
   {
@@ -58,53 +66,63 @@ const steps = [
   },
 ];
 
-const vaccines = [
-  { name: "Flu (Influenza)", icon: "🤧", category: "Annual" },
-  { name: "Hepatitis A & B", icon: "💉", category: "Travel" },
-  { name: "Typhoid", icon: "🌡️", category: "Travel" },
-  { name: "Chickenpox (Varicella)", icon: "🔴", category: "Paediatric" },
-  { name: "MMR", icon: "👶", category: "Paediatric" },
-  { name: "Pneumococcal", icon: "🫁", category: "Adult" },
-  { name: "HPV", icon: "🩺", category: "Adult" },
-  { name: "Rabies", icon: "🐕", category: "Travel" },
-];
+// Default hero content shown when no banners are in DB
+function DefaultHero() {
+  return (
+    <section className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 text-white py-14 sm:py-20 md:py-24 px-4">
+      <div className="max-w-4xl mx-auto text-center">
+        <p className="text-emerald-200 text-xs sm:text-sm font-semibold uppercase tracking-widest mb-3 sm:mb-4">
+          Delhi · Noida · Gurgaon
+        </p>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4 sm:mb-6">
+          Vaccines Delivered<br />
+          <span className="text-amber-300">To Your Home</span>
+        </h1>
+        <p className="text-emerald-100 text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-7 sm:mb-10 leading-relaxed">
+          Certified nurses bring your vaccines to your doorstep. Cold-chain maintained.
+          GST invoice included. Serving Delhi NCR since 2023.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+          <Link
+            href="/book"
+            className="inline-block bg-white text-emerald-700 font-bold px-7 sm:px-10 py-3 sm:py-4 rounded-full shadow-xl hover:bg-emerald-50 transition-colors text-base sm:text-lg"
+          >
+            Book a Home Visit →
+          </Link>
+          <Link
+            href="/vaccines"
+            className="inline-block border-2 border-white text-white font-bold px-7 sm:px-10 py-3 sm:py-4 rounded-full hover:bg-emerald-600 transition-colors text-base sm:text-lg"
+          >
+            View Vaccines
+          </Link>
+        </div>
+        <p className="text-emerald-300 text-xs sm:text-sm mt-6 sm:mt-8">
+          ✓ Free quote &nbsp;·&nbsp; ✓ No hidden charges &nbsp;·&nbsp; ✓ Free rescheduling
+        </p>
+      </div>
+    </section>
+  );
+}
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Fetch all CMS data in parallel
+  const [heroBanners, videos, categories, categoryItems] = await Promise.all([
+    db.select().from(banners).where(eq(banners.isActive, true)).orderBy(asc(banners.sortOrder)),
+    db.select().from(youtubeVideos).where(eq(youtubeVideos.isActive, true)).orderBy(asc(youtubeVideos.sortOrder)),
+    db.select().from(vaccineCategories).where(eq(vaccineCategories.isActive, true)).orderBy(asc(vaccineCategories.sortOrder)),
+    db.select().from(vaccineCategoryItems).where(eq(vaccineCategoryItems.isActive, true)).orderBy(asc(vaccineCategoryItems.sortOrder)),
+  ]);
+
+  // Attach items to categories
+  const categoriesWithItems = categories.map((cat) => ({
+    ...cat,
+    items: categoryItems.filter((item) => item.categoryId === cat.id),
+  }));
+
   return (
     <main className="min-h-screen bg-white">
-      {/* ── Hero ── */}
-      <section className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 text-white py-14 sm:py-20 md:py-24 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-emerald-200 text-xs sm:text-sm font-semibold uppercase tracking-widest mb-3 sm:mb-4">
-            Delhi · Noida · Gurgaon
-          </p>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4 sm:mb-6">
-            Vaccines Delivered<br />
-            <span className="text-amber-300">To Your Home</span>
-          </h1>
-          <p className="text-emerald-100 text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-7 sm:mb-10 leading-relaxed">
-            Certified nurses bring your vaccines to your doorstep. Cold-chain maintained.
-            GST invoice included. Serving Delhi NCR since 2023.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-            <Link
-              href="/book"
-              className="inline-block bg-white text-emerald-700 font-bold px-7 sm:px-10 py-3 sm:py-4 rounded-full shadow-xl hover:bg-emerald-50 transition-colors text-base sm:text-lg"
-            >
-              Book a Home Visit →
-            </Link>
-            <Link
-              href="/vaccines"
-              className="inline-block border-2 border-white text-white font-bold px-7 sm:px-10 py-3 sm:py-4 rounded-full hover:bg-emerald-600 transition-colors text-base sm:text-lg"
-            >
-              View Vaccines
-            </Link>
-          </div>
-          <p className="text-emerald-300 text-xs sm:text-sm mt-6 sm:mt-8">
-            ✓ Free quote &nbsp;·&nbsp; ✓ No hidden charges &nbsp;·&nbsp; ✓ Free rescheduling
-          </p>
-        </div>
-      </section>
+      {/* ── Hero Carousel (or default hero if no banners) ── */}
+      <HeroCarousel banners={heroBanners} fallback={<DefaultHero />} />
 
       {/* ── Trust bar ── */}
       <div className="bg-emerald-50 border-y border-emerald-100 py-4 sm:py-5 px-4">
@@ -146,15 +164,22 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── Vaccine Categories Accordion (dynamic from DB) ── */}
+      {categoriesWithItems.length > 0 && (
+        <div className="bg-gray-50">
+          <VaccineCategoriesAccordion categories={categoriesWithItems} />
+        </div>
+      )}
+
       {/* ── Features ── */}
-      <section className="bg-gray-50 py-12 sm:py-16 md:py-20 px-4">
+      <section className="bg-white py-12 sm:py-16 md:py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 text-center mb-10 sm:mb-14">
             Why Families Choose Us
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {features.map((f) => (
-              <div key={f.title} className="bg-white rounded-2xl p-5 sm:p-7 flex gap-3 sm:gap-4 shadow-sm border border-gray-100">
+              <div key={f.title} className="bg-gray-50 rounded-2xl p-5 sm:p-7 flex gap-3 sm:gap-4 shadow-sm border border-gray-100">
                 <span className="text-2xl sm:text-3xl flex-shrink-0">{f.icon}</span>
                 <div>
                   <h3 className="font-bold text-gray-900 mb-1 text-sm sm:text-base">{f.title}</h3>
@@ -166,34 +191,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Vaccine preview ── */}
-      <section className="max-w-5xl mx-auto px-4 py-12 sm:py-16 md:py-20">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 text-center mb-3 sm:mb-4">
-          Popular Vaccines We Offer
-        </h2>
-        <p className="text-gray-500 text-center mb-8 sm:mb-12 max-w-xl mx-auto text-sm sm:text-base">
-          We carry a wide range of vaccines for all age groups. View the full catalogue for details.
-        </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          {vaccines.map((v) => (
-            <div key={v.name} className="bg-gray-50 rounded-2xl p-3 sm:p-5 text-center border border-gray-100">
-              <div className="text-2xl sm:text-3xl mb-1.5 sm:mb-2">{v.icon}</div>
-              <p className="font-semibold text-gray-900 text-xs sm:text-sm">{v.name}</p>
-              <span className="inline-block mt-1 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
-                {v.category}
-              </span>
-            </div>
-          ))}
-        </div>
-        <div className="text-center mt-7 sm:mt-10">
-          <Link
-            href="/vaccines"
-            className="inline-block border-2 border-emerald-600 text-emerald-600 font-bold px-6 sm:px-8 py-2.5 sm:py-3 rounded-full hover:bg-emerald-50 transition-colors text-sm sm:text-base"
-          >
-            View Full Catalogue →
-          </Link>
-        </div>
-      </section>
+      {/* ── YouTube Section (dynamic from DB) ── */}
+      {videos.length > 0 && <YouTubeSection videos={videos} />}
 
       {/* ── Testimonials ── */}
       <section className="bg-emerald-50 py-12 sm:py-16 md:py-20 px-4">
