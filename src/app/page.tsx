@@ -78,9 +78,16 @@ function DefaultHero() {
           Home Vaccinations for Kids,<br />
           <span className="text-amber-300">& Families</span>
         </h1>
-        <p className="text-emerald-100 text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-7 sm:mb-10 leading-relaxed">
-          The only home vaccination service designed and run by a Senior Pediatrician since 2019
-        </p>
+        {/* Upper Strip */}
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-emerald-100 text-sm sm:text-base font-medium mb-7 sm:mb-10">
+          <span>👨‍⚕️ Senior Pediatrician-Led</span>
+          <span className="hidden sm:inline text-emerald-400">·</span>
+          <span>💉 Trained Nurses</span>
+          <span className="hidden sm:inline text-emerald-400">·</span>
+          <span>🏠 Free Home Visit</span>
+          <span className="hidden sm:inline text-emerald-400">·</span>
+          <span>💰 Lowest Prices Guaranteed</span>
+        </div>
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
           <Link
             href="/book"
@@ -95,9 +102,20 @@ function DefaultHero() {
             View Vaccines
           </Link>
         </div>
-        <p className="text-emerald-300 text-xs sm:text-sm mt-6 sm:mt-8">
-          ✓ Free quote &nbsp;·&nbsp; ✓ No hidden charges &nbsp;·&nbsp; ✓ Free rescheduling
-        </p>
+        {/* Trust Bar — Lower Strip */}
+        <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-emerald-300 text-xs sm:text-sm mt-6 sm:mt-8">
+          <span>❄️ Cold-Chain Certified</span>
+          <span className="text-emerald-500">·</span>
+          <span>💊 All Brands</span>
+          <span className="text-emerald-500">·</span>
+          <span>🛡️ 100% Genuine Vaccines</span>
+          <span className="text-emerald-500">·</span>
+          <span>📋 GST Invoice</span>
+          <span className="text-emerald-500">·</span>
+          <span>⭐ 5000+ Happy Families</span>
+          <span className="text-emerald-500">·</span>
+          <span>📍 Delhi · Noida · Gurgaon</span>
+        </div>
       </div>
     </section>
   );
