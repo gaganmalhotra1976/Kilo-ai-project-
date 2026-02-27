@@ -79,8 +79,7 @@ function DefaultHero() {
           <span className="text-amber-300">& Families</span>
         </h1>
         <p className="text-emerald-100 text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-7 sm:mb-10 leading-relaxed">
-          Certified nurses bring your vaccines to your doorstep. Cold-chain maintained.
-          GST invoice included. Serving Delhi NCR since 2023.
+          The only home vaccination service designed and run by a Senior Pediatrician since 2019
         </p>
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
           <Link
