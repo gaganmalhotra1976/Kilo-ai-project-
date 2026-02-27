@@ -218,12 +218,10 @@ export default async function HomePage() {
       {/* ── Trust bar ── */}
       <div className="bg-emerald-50 border-y border-emerald-100 py-4 sm:py-5 px-4">
         <div className="max-w-5xl mx-auto flex flex-wrap justify-center gap-3 sm:gap-6 md:gap-8 text-xs sm:text-sm font-medium text-emerald-800">
-          <span>❄️ Cold-Chain Certified</span>
-          <span>💊 All Brands</span>
-          <span>🛡️ 100% Genuine Vaccines</span>
-          <span>📋 GST Invoice</span>
-          <span>⭐ 5000+ Happy Families</span>
-          <span>📍 Delhi · Noida · Gurgaon</span>
+          <span>👨‍⚕️ Senior Pediatrician-Led</span>
+          <span>💉 Trained Nurses</span>
+          <span>🏠 Free Home Visit</span>
+          <span>💰 Lowest Prices Guaranteed</span>
         </div>
       </div>
 
