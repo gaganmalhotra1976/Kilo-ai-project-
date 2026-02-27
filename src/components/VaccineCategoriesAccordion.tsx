@@ -28,122 +28,135 @@ interface VaccineCategoriesAccordionProps {
   categories: VaccineCategory[];
 }
 
-export default function VaccineCategoriesAccordion({ categories }: VaccineCategoriesAccordionProps) {
-  const [openId, setOpenId] = useState<number | null>(categories[0]?.id ?? null);
+interface AgeBandVaccine {
+  name: string;
+  doses?: string;
+}
 
-  if (!categories || categories.length === 0) return null;
+interface AgeBand {
+  id: string;
+  emoji: string;
+  label: string;
+  range: string;
+  vaccines: AgeBandVaccine[];
+}
 
-  const toggle = (id: number) => {
-    setOpenId((prev) => (prev === id ? null : id));
-  };
+const AGE_BANDS: AgeBand[] = [
+  {
+    id: "0-6w",
+    emoji: "🍼",
+    label: "0–6 Weeks",
+    range: "Birth to 6 weeks",
+    vaccines: [
+      { name: "BCG" },
+      { name: "Hep B", doses: "Birth dose" },
+    ],
+  },
+  {
+    id: "6-14w",
+    emoji: "👶",
+    label: "6–14 Weeks",
+    range: "6 weeks to 14 weeks",
+    vaccines: [
+      { name: "Hexavalent DPT with IPV combo", doses: "3 shots" },
+      { name: "PCV", doses: "3 shots" },
+      { name: "Rotavirus", doses: "3 shots" },
+      { name: "OPV", doses: "3 shots" },
+    ],
+  },
+  {
+    id: "6-7m",
+    emoji: "🧒",
+    label: "6–7 Months",
+    range: "6 to 7 months",
+    vaccines: [
+      { name: "Flu", doses: "2 shots" },
+    ],
+  },
+  {
+    id: "9-12m",
+    emoji: "🎂",
+    label: "9–12 Months",
+    range: "9 to 12 months",
+    vaccines: [
+      { name: "MMR" },
+      { name: "Typhoid" },
+      { name: "Hep A", doses: "1st shot" },
+      { name: "JE", doses: "2 shots" },
+      { name: "Meningococcal", doses: "2 shots" },
+    ],
+  },
+];
+
+export default function VaccineCategoriesAccordion({ categories: _categories }: VaccineCategoriesAccordionProps) {
+  const [activeTab, setActiveTab] = useState<string>(AGE_BANDS[0].id);
+
+  const activeBand = AGE_BANDS.find((b) => b.id === activeTab) ?? AGE_BANDS[0];
 
   return (
     <section className="max-w-5xl mx-auto px-4 py-12 sm:py-16 md:py-20">
       <div className="text-center mb-8 sm:mb-12">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-          Vaccine Categories
+          Vaccine Schedule by Age
         </h2>
         <p className="text-gray-500 text-sm sm:text-base max-w-xl mx-auto">
-          Browse vaccines by category. Click a category to see the full list of available vaccines.
+          Select an age group to see recommended vaccines.
         </p>
       </div>
 
-      <div className="space-y-3">
-        {categories.map((cat) => {
-          const isOpen = openId === cat.id;
-          return (
-            <div
-              key={cat.id}
-              className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm"
-            >
-              {/* Header */}
-              <button
-                onClick={() => toggle(cat.id)}
-                className="w-full flex items-center justify-between px-5 sm:px-6 py-4 sm:py-5 text-left hover:bg-gray-50 transition-colors"
-                aria-expanded={isOpen}
-              >
-                <div className="flex items-center gap-3 sm:gap-4">
-                  {cat.icon && (
-                    <span className="text-2xl sm:text-3xl flex-shrink-0">{cat.icon}</span>
-                  )}
-                  <div>
-                    <h3 className="font-bold text-gray-900 text-base sm:text-lg">{cat.name}</h3>
-                    {cat.description && (
-                      <p className="text-gray-500 text-xs sm:text-sm mt-0.5">{cat.description}</p>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                  <span className="text-xs bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-medium">
-                    {cat.items.length} vaccine{cat.items.length !== 1 ? "s" : ""}
-                  </span>
-                  <svg
-                    className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </button>
+      {/* Tab bar */}
+      <div className="flex flex-wrap gap-2 sm:gap-3 justify-center mb-8">
+        {AGE_BANDS.map((band) => (
+          <button
+            key={band.id}
+            onClick={() => setActiveTab(band.id)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold border transition-all duration-200 ${
+              activeTab === band.id
+                ? "bg-emerald-600 text-white border-emerald-600 shadow-md"
+                : "bg-white text-gray-700 border-gray-200 hover:border-emerald-400 hover:text-emerald-700"
+            }`}
+          >
+            <span className="text-base">{band.emoji}</span>
+            <span>{band.label}</span>
+          </button>
+        ))}
+      </div>
 
-              {/* Expandable content */}
+      {/* Active band content */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        {/* Band header */}
+        <div className="bg-emerald-50 border-b border-emerald-100 px-6 py-4 flex items-center gap-3">
+          <span className="text-3xl">{activeBand.emoji}</span>
+          <div>
+            <h3 className="font-bold text-gray-900 text-lg">{activeBand.label}</h3>
+            <p className="text-emerald-700 text-sm">{activeBand.range}</p>
+          </div>
+          <span className="ml-auto text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-medium">
+            {activeBand.vaccines.length} vaccine{activeBand.vaccines.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+
+        {/* Vaccine list */}
+        <div className="p-5 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {activeBand.vaccines.map((vaccine, idx) => (
               <div
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                  isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
-                }`}
+                key={idx}
+                className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 border border-gray-100"
               >
-                {cat.items.length === 0 ? (
-                  <div className="px-5 sm:px-6 pb-5 text-gray-400 text-sm">
-                    No vaccines listed in this category yet.
-                  </div>
-                ) : (
-                  <div className="px-5 sm:px-6 pb-5">
-                    <div className="border-t border-gray-100 pt-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {cat.items.map((item) => (
-                          <div
-                            key={item.id}
-                            className="bg-gray-50 rounded-xl p-3 sm:p-4 border border-gray-100"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <h4 className="font-semibold text-gray-900 text-sm">{item.name}</h4>
-                              {item.dosesRequired && item.dosesRequired > 1 && (
-                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full flex-shrink-0">
-                                  {item.dosesRequired} doses
-                                </span>
-                              )}
-                            </div>
-                            {item.description && (
-                              <p className="text-gray-500 text-xs mt-1 leading-relaxed">
-                                {item.description}
-                              </p>
-                            )}
-                            <div className="flex flex-wrap gap-1.5 mt-2">
-                              {item.ageGroup && (
-                                <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">
-                                  {item.ageGroup}
-                                </span>
-                              )}
-                              {item.notes && (
-                                <span className="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">
-                                  {item.notes}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                  <span className="font-semibold text-gray-900 text-sm">{vaccine.name}</span>
+                </div>
+                {vaccine.doses && (
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full font-medium flex-shrink-0 ml-2">
+                    {vaccine.doses}
+                  </span>
                 )}
               </div>
-            </div>
-          );
-        })}
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
