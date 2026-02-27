@@ -22,12 +22,13 @@ const VACCINES = [
 ];
 
 const PROMOS = [
-  "🎉 Free home visit for orders above ₹2,000 — Book now!",
-  "💉 Family pack: vaccinate 4 people, get 10% off — Limited slots!",
-  "🏢 Corporate drives available — Call 9999109040 for bulk pricing",
-  "⭐ 500+ happy families in Delhi NCR — Join them today!",
-  "❄️ Cold-chain certified vaccines delivered to your door",
-  "🧾 GST invoice included — Perfect for company reimbursements",
+  "👨‍⚕️ India's only home vaccination service led by a Senior Pediatrician",
+  "👨‍👩‍👧‍👦 Family Pack: Save 10%",
+  "🏠 Free Home Visit on orders above ₹1,500 — Zero travel, zero waiting",
+  "💉 All brands: Hexaxim · Prevenar · Rotavac · Pneumovax & more",
+  "❄️ Cold-chain certified · GST invoiced · 100% Genuine vaccines",
+  "⭐ 5000+ families trust us across Delhi · Noida · Gurgaon",
+  "🏢 Corporate Vaccination Drives — WhatsApp 9999109040",
 ];
 
 export default function FloatingCTA() {
