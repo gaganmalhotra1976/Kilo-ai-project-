@@ -5,11 +5,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "image.cdn.shpy.in",
+        hostname: "**",
       },
       {
-        protocol: "https",
-        hostname: "**.shpy.in",
+        protocol: "http",
+        hostname: "**",
       },
     ],
   },
