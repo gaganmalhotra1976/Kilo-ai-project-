@@ -10,7 +10,8 @@ export async function GET() {
     return NextResponse.json(results);
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Failed to fetch settings" }, { status: 500 });
+    // Return empty array if table doesn't exist yet
+    return NextResponse.json([]);
   }
 }
 

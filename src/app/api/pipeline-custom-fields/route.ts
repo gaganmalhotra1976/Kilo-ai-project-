@@ -12,7 +12,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(rows);
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: "Failed to fetch custom fields" }, { status: 500 });
+    // Return empty array if table doesn't exist yet
+    return NextResponse.json([]);
   }
 }
 

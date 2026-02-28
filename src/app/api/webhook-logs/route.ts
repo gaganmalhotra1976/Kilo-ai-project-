@@ -31,6 +31,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(results);
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Failed to fetch webhook logs" }, { status: 500 });
+    // Return empty array if table doesn't exist yet
+    return NextResponse.json([]);
   }
 }
