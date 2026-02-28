@@ -1,7 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "image.cdn.shpy.in",
+      },
+      {
+        protocol: "https",
+        hostname: "**.shpy.in",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
