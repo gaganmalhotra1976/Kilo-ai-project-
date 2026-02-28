@@ -43,6 +43,27 @@
       "when": 1780300000000,
       "tag": "0005_blog_posts",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1780400000000,
+      "tag": "0006_banner_images",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1780500000000,
+      "tag": "0007_pipelines",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1780600000000,
+      "tag": "0008_webhooks_system",
+      "breakpoints": true
     }
   ]
 }
