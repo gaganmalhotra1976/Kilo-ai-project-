@@ -16,8 +16,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "The Vaccine Panda — Home Vaccination Delhi NCR",
-    template: "%s | The Vaccine Panda",
+    default: "Vaccine Panda Website — Home Vaccination Delhi NCR",
+    template: "%s | Vaccine Panda Website",
   },
   description:
     "Certified nurses bring vaccines to your doorstep in Delhi, Noida & Gurgaon. Book a home vaccination visit today.",
