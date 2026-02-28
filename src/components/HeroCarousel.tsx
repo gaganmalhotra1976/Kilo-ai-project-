@@ -9,6 +9,8 @@ interface Banner {
   headline: string;
   subtext: string | null;
   imageUrl: string | null;
+  desktopImageUrl: string | null;
+  mobileImageUrl: string | null;
   buttonText: string | null;
   buttonLink: string | null;
   sortOrder: number;
@@ -96,15 +98,40 @@ export default function HeroCarousel({ banners, fallback, defaultSlide }: HeroCa
             }`}
             aria-hidden={slideIdx !== current}
           >
-            {banner.imageUrl ? (
+            {(banner.desktopImageUrl || banner.mobileImageUrl || banner.imageUrl) ? (() => {
+              const desktopSrc = banner.desktopImageUrl ?? banner.imageUrl;
+              const mobileSrc = banner.mobileImageUrl ?? banner.imageUrl;
+              return (
               <div className="relative h-[420px] sm:h-[520px] md:h-[600px] w-full">
-                <Image
-                  src={banner.imageUrl}
-                  alt={banner.headline}
-                  fill
-                  className="object-cover"
-                  priority={idx === 0}
-                />
+                {/* Responsive image: show mobile image below md, desktop image from md up */}
+                {mobileSrc && desktopSrc && mobileSrc !== desktopSrc ? (
+                  <>
+                    {/* Mobile image (hidden on md+) */}
+                    <Image
+                      src={mobileSrc}
+                      alt={banner.headline}
+                      fill
+                      className="object-cover md:hidden"
+                      priority={idx === 0}
+                    />
+                    {/* Desktop image (hidden below md) */}
+                    <Image
+                      src={desktopSrc}
+                      alt={banner.headline}
+                      fill
+                      className="object-cover hidden md:block"
+                      priority={idx === 0}
+                    />
+                  </>
+                ) : (
+                  <Image
+                    src={(desktopSrc ?? mobileSrc)!}
+                    alt={banner.headline}
+                    fill
+                    className="object-cover"
+                    priority={idx === 0}
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
                 <div className="absolute inset-0 flex items-center justify-center px-4">
                   <div className="text-center text-white max-w-3xl">
@@ -127,7 +154,8 @@ export default function HeroCarousel({ banners, fallback, defaultSlide }: HeroCa
                   </div>
                 </div>
               </div>
-            ) : (
+              );
+            })() : (
               <div className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 text-white py-14 sm:py-20 md:py-24 px-4">
                 <div className="max-w-4xl mx-auto text-center">
                   <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4 sm:mb-6">

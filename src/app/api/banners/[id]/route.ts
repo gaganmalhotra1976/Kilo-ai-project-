@@ -7,13 +7,15 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   try {
     const { id } = await params;
     const body = await req.json();
-    const { headline, subtext, imageUrl, buttonText, buttonLink, sortOrder, isActive } = body;
+    const { headline, subtext, imageUrl, desktopImageUrl, mobileImageUrl, buttonText, buttonLink, sortOrder, isActive } = body;
     const [row] = await db
       .update(banners)
       .set({
         headline,
         subtext: subtext ?? null,
         imageUrl: imageUrl ?? null,
+        desktopImageUrl: desktopImageUrl ?? null,
+        mobileImageUrl: mobileImageUrl ?? null,
         buttonText: buttonText ?? null,
         buttonLink: buttonLink ?? null,
         sortOrder: sortOrder ?? 0,

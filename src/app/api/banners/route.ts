@@ -22,7 +22,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { headline, subtext, imageUrl, buttonText, buttonLink, sortOrder, isActive } = body;
+    const { headline, subtext, imageUrl, desktopImageUrl, mobileImageUrl, buttonText, buttonLink, sortOrder, isActive } = body;
     if (!headline) {
       return NextResponse.json({ error: "headline is required" }, { status: 400 });
     }
@@ -32,6 +32,8 @@ export async function POST(req: Request) {
         headline,
         subtext: subtext ?? null,
         imageUrl: imageUrl ?? null,
+        desktopImageUrl: desktopImageUrl ?? null,
+        mobileImageUrl: mobileImageUrl ?? null,
         buttonText: buttonText ?? null,
         buttonLink: buttonLink ?? null,
         sortOrder: sortOrder ?? 0,

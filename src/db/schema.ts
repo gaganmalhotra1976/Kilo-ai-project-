@@ -102,7 +102,9 @@ export const banners = sqliteTable("banners", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   headline: text("headline").notNull(),
   subtext: text("subtext"),
-  imageUrl: text("image_url"),
+  imageUrl: text("image_url"),           // legacy / fallback URL
+  desktopImageUrl: text("desktop_image_url"), // uploaded desktop image (≥768px)
+  mobileImageUrl: text("mobile_image_url"),   // uploaded mobile image (<768px)
   buttonText: text("button_text"),
   buttonLink: text("button_link"),
   sortOrder: integer("sort_order").notNull().default(0),
