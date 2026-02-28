@@ -42,6 +42,13 @@ export default function BookingForm() {
   const [selectedPatients, setSelectedPatients] = useState<string[]>(["myself"]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [customerName, setCustomerName] = useState("");
+  const [customerId, setCustomerId] = useState<string | null>(null);
+
+  // Add family member inline form
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [addMemberLoading, setAddMemberLoading] = useState(false);
+  const [addMemberError, setAddMemberError] = useState("");
+  const [newMember, setNewMember] = useState({ name: "", dateOfBirth: "", gender: "" });
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -56,6 +63,7 @@ export default function BookingForm() {
 
     setIsLoggedIn(true);
     setCustomerName(storedName || "Myself");
+    setCustomerId(customerId);
     setAuthChecking(false);
 
     if (customerId) {
@@ -77,6 +85,33 @@ export default function BookingForm() {
     setSelectedPatients((prev) =>
       prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key]
     );
+  }
+
+  async function handleAddMember(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newMember.name.trim()) return;
+    setAddMemberLoading(true);
+    setAddMemberError("");
+    try {
+      const res = await fetch("/api/family-members", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...newMember, customerId: Number(customerId) }),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error || "Failed to add member");
+      }
+      const added: FamilyMember = await res.json();
+      setFamilyMembers((prev) => [...prev, added]);
+      setSelectedPatients((prev) => [...prev, String(added.id)]);
+      setNewMember({ name: "", dateOfBirth: "", gender: "" });
+      setShowAddMember(false);
+    } catch (err) {
+      setAddMemberError(err instanceof Error ? err.message : "Failed to add member");
+    } finally {
+      setAddMemberLoading(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -253,13 +288,76 @@ export default function BookingForm() {
               </label>
             ))}
 
-            {familyMembers.length === 0 && (
-              <p className="sm:col-span-2 text-sm text-gray-400 italic">
-                No family members added yet.{" "}
-                <a href="/profile" className="text-emerald-600 hover:underline">
-                  Add them in your profile →
-                </a>
-              </p>
+          </div>
+
+          {/* Add family member button + inline form */}
+          <div className="mt-3">
+            {!showAddMember ? (
+              <button
+                type="button"
+                onClick={() => setShowAddMember(true)}
+                className="flex items-center gap-2 text-sm text-emerald-700 font-medium border border-emerald-300 rounded-xl px-4 py-2 hover:bg-emerald-50 transition-colors"
+              >
+                <span className="text-lg leading-none">+</span> Add Family Member
+              </button>
+            ) : (
+              <div className="border border-emerald-200 rounded-xl p-4 bg-emerald-50 space-y-3">
+                <p className="text-sm font-semibold text-emerald-800">Add a Family Member</p>
+                {addMemberError && (
+                  <p className="text-xs text-red-600">{addMemberError}</p>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Name <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      value={newMember.name}
+                      onChange={(e) => setNewMember((p) => ({ ...p, name: e.target.value }))}
+                      placeholder="Full name"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Date of Birth</label>
+                    <input
+                      type="date"
+                      value={newMember.dateOfBirth}
+                      onChange={(e) => setNewMember((p) => ({ ...p, dateOfBirth: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Gender</label>
+                    <select
+                      value={newMember.gender}
+                      onChange={(e) => setNewMember((p) => ({ ...p, gender: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                    >
+                      <option value="">Select</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAddMember}
+                    disabled={addMemberLoading || !newMember.name.trim()}
+                    className="bg-emerald-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                  >
+                    {addMemberLoading ? "Saving…" : "Save Member"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowAddMember(false); setAddMemberError(""); setNewMember({ name: "", dateOfBirth: "", gender: "" }); }}
+                    className="text-sm text-gray-500 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
