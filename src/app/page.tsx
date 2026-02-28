@@ -213,7 +213,8 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-white">
       {/* ── Hero Carousel (or default hero if no banners) ── */}
-      <HeroCarousel banners={heroBanners} fallback={<DefaultHero />} />
+      {/* DefaultHero is always the first slide; DB banners follow in the carousel */}
+      <HeroCarousel banners={heroBanners} defaultSlide={<DefaultHero />} />
 
       {/* ── Trust bar ── */}
       <div className="bg-emerald-50 border-y border-emerald-100 py-4 sm:py-5 px-4">

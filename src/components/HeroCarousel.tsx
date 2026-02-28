@@ -18,9 +18,13 @@ interface Banner {
 interface HeroCarouselProps {
   banners: Banner[];
   fallback?: React.ReactNode;
+  /** Always shown as the first slide, even when DB banners exist */
+  defaultSlide?: React.ReactNode;
 }
 
-export default function HeroCarousel({ banners, fallback }: HeroCarouselProps) {
+export default function HeroCarousel({ banners, fallback, defaultSlide }: HeroCarouselProps) {
+  // Total slides = defaultSlide (if provided) + DB banners
+  const totalSlides = (defaultSlide ? 1 : 0) + banners.length;
   const [current, setCurrent] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -35,37 +39,62 @@ export default function HeroCarousel({ banners, fallback }: HeroCarouselProps) {
   );
 
   const next = useCallback(() => {
-    goTo((current + 1) % banners.length);
-  }, [current, banners.length, goTo]);
+    goTo((current + 1) % totalSlides);
+  }, [current, totalSlides, goTo]);
 
   const prev = useCallback(() => {
-    goTo((current - 1 + banners.length) % banners.length);
-  }, [current, banners.length, goTo]);
+    goTo((current - 1 + totalSlides) % totalSlides);
+  }, [current, totalSlides, goTo]);
 
   // Auto-scroll every 5 seconds
   useEffect(() => {
-    if (banners.length <= 1) return;
+    if (totalSlides <= 1) return;
     const timer = setInterval(next, 5000);
     return () => clearInterval(timer);
-  }, [banners.length, next]);
+  }, [totalSlides, next]);
 
-  if (!banners || banners.length === 0) {
+  // No banners and no defaultSlide → show fallback
+  if (totalSlides === 0) {
     return <>{fallback}</>;
   }
 
-  const slide = banners[current];
+  // Only the defaultSlide, no DB banners → render it directly (no carousel chrome)
+  if (totalSlides === 1 && defaultSlide) {
+    return <>{defaultSlide}</>;
+  }
+
+  // Only DB banners, no defaultSlide → original single-slide fallback
+  if (!defaultSlide && banners.length === 0) {
+    return <>{fallback}</>;
+  }
+
+  const slide = current === 0 && defaultSlide ? null : banners[current - (defaultSlide ? 1 : 0)];
 
   return (
     <section className="relative overflow-hidden">
       {/* Slides */}
       <div className="relative">
-        {banners.map((banner, idx) => (
+        {/* Default slide (always first) */}
+        {defaultSlide && (
+          <div
+            className={`transition-opacity duration-500 ${
+              current === 0 ? "opacity-100" : "opacity-0 absolute inset-0"
+            }`}
+            aria-hidden={current !== 0}
+          >
+            {defaultSlide}
+          </div>
+        )}
+        {/* DB banner slides */}
+        {banners.map((banner, idx) => {
+          const slideIdx = idx + (defaultSlide ? 1 : 0);
+          return (
           <div
             key={banner.id}
             className={`transition-opacity duration-500 ${
-              idx === current ? "opacity-100" : "opacity-0 absolute inset-0"
+              slideIdx === current ? "opacity-100" : "opacity-0 absolute inset-0"
             }`}
-            aria-hidden={idx !== current}
+            aria-hidden={slideIdx !== current}
           >
             {banner.imageUrl ? (
               <div className="relative h-[420px] sm:h-[520px] md:h-[600px] w-full">
@@ -121,11 +150,12 @@ export default function HeroCarousel({ banners, fallback }: HeroCarouselProps) {
               </div>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Navigation arrows (only if multiple slides) */}
-      {banners.length > 1 && (
+      {totalSlides > 1 && (
         <>
           <button
             onClick={prev}
@@ -148,7 +178,7 @@ export default function HeroCarousel({ banners, fallback }: HeroCarouselProps) {
 
           {/* Dots */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
-            {banners.map((_, idx) => (
+            {Array.from({ length: totalSlides }).map((_, idx) => (
               <button
                 key={idx}
                 onClick={() => goTo(idx)}
@@ -165,15 +195,15 @@ export default function HeroCarousel({ banners, fallback }: HeroCarouselProps) {
       )}
 
       {/* Slide counter */}
-      {banners.length > 1 && (
+      {totalSlides > 1 && (
         <div className="absolute top-4 right-4 z-10 bg-black/30 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full">
-          {current + 1} / {banners.length}
+          {current + 1} / {totalSlides}
         </div>
       )}
 
       {/* Hidden: current slide info for screen readers */}
       <div className="sr-only" aria-live="polite">
-        Slide {current + 1} of {banners.length}: {slide.headline}
+        Slide {current + 1} of {totalSlides}{slide ? `: ${slide.headline}` : ""}
       </div>
     </section>
   );
