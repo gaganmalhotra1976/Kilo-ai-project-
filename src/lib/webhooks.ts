@@ -20,18 +20,24 @@ export interface WebhookPayload {
 }
 
 export async function getWebhookConfig(): Promise<{ url: string; secret: string }> {
-  const webhookUrlSetting = await db.query.settings.findFirst({
-    where: eq(settings.key, "webhook_url"),
-  });
-  
-  const webhookSecretSetting = await db.query.settings.findFirst({
-    where: eq(settings.key, "webhook_secret"),
-  });
+  try {
+    const webhookUrlSetting = await db.query.settings.findFirst({
+      where: eq(settings.key, "webhook_url"),
+    });
+    
+    const webhookSecretSetting = await db.query.settings.findFirst({
+      where: eq(settings.key, "webhook_secret"),
+    });
 
-  return {
-    url: webhookUrlSetting?.value || "",
-    secret: webhookSecretSetting?.value || ""
-  };
+    return {
+      url: webhookUrlSetting?.value || process.env.WEBHOOK_URL || "",
+      secret: webhookSecretSetting?.value || process.env.WEBHOOK_SECRET || ""
+    };
+  } catch (error) {
+    // If tables don't exist yet, return empty config
+    console.warn("Webhook config unavailable - tables may not be migrated yet");
+    return { url: "", secret: "" };
+  }
 }
 
 export async function triggerWebhook(
@@ -68,19 +74,23 @@ export async function triggerWebhook(
 
     const responseBody = await response.text();
 
-    // Log the webhook attempt
-    await db.insert(webhookLogs).values({
-      event,
-      payload: payloadString,
-      responseCode: response.status,
-      responseBody,
-      success: response.ok,
-      errorMessage: response.ok ? null : `HTTP ${response.status}: ${responseBody.substring(0, 500)}`,
-      triggeredBy,
-      retryCount: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    // Try to log the webhook attempt (may fail if tables don't exist)
+    try {
+      await db.insert(webhookLogs).values({
+        event,
+        payload: payloadString,
+        responseCode: response.status,
+        responseBody,
+        success: response.ok,
+        errorMessage: response.ok ? null : `HTTP ${response.status}: ${responseBody.substring(0, 500)}`,
+        triggeredBy,
+        retryCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    } catch (logError) {
+      console.warn("Failed to log webhook attempt - tables may not exist yet");
+    }
 
     if (response.ok) {
       console.log(`✅ Webhook triggered successfully: ${event}`);
@@ -91,19 +101,23 @@ export async function triggerWebhook(
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     
-    // Log the failed webhook attempt
-    await db.insert(webhookLogs).values({
-      event,
-      payload: payloadString,
-      responseCode: null,
-      responseBody: null,
-      success: false,
-      errorMessage,
-      triggeredBy,
-      retryCount: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    // Try to log the failed webhook attempt (may fail if tables don't exist)
+    try {
+      await db.insert(webhookLogs).values({
+        event,
+        payload: payloadString,
+        responseCode: null,
+        responseBody: null,
+        success: false,
+        errorMessage,
+        triggeredBy,
+        retryCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+    } catch (logError) {
+      console.warn("Failed to log webhook failure - tables may not exist yet");
+    }
 
     console.error(`❌ Webhook error: ${event}`, errorMessage);
   }

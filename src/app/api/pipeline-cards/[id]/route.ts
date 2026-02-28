@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { pipelineCards, pipelineCardHistory, pipelineStages } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { triggerPipelineStageChanged } from "@/lib/webhooks";
+// import { triggerPipelineStageChanged } from "@/lib/webhooks";
+
+// Temporarily disabled - can be re-enabled after database migration
+async function triggerPipelineStageChanged(_cardData: any, _triggeredBy: string | null = null) {
+  console.log("Webhook disabled until migration is applied");
+}
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
