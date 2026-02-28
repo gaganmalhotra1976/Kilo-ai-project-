@@ -2,279 +2,286 @@
 
 import { useState } from "react";
 
-interface VaccineCategoryItem {
-  id: number;
-  categoryId: number;
+type BadgeColor = "blue" | "green" | "orange" | "purple" | "teal";
+
+const BADGE_CLASSES: Record<BadgeColor, string> = {
+  blue: "bg-[#eef4ff] text-[#3b6fd4]",
+  green: "bg-[#e8f5f0] text-[#2e7d5e]",
+  orange: "bg-[#fff4e5] text-[#d4813b]",
+  purple: "bg-[#f0eeff] text-[#6b4fd4]",
+  teal: "bg-[#e0f7fa] text-[#00796b]",
+};
+
+interface Vaccine {
   name: string;
-  description: string | null;
-  ageGroup: string | null;
-  dosesRequired: number | null;
-  notes: string | null;
-  sortOrder: number;
-  isActive: boolean;
-}
-
-interface VaccineCategory {
-  id: number;
-  name: string;
-  description: string | null;
-  icon: string | null;
-  sortOrder: number;
-  isActive: boolean;
-  items: VaccineCategoryItem[];
-}
-
-interface VaccineCategoriesAccordionProps {
-  categories: VaccineCategory[];
-}
-
-type BadgeColor = "blue" | "green" | "orange" | "purple" | "teal" | "red";
-
-interface AgeBandVaccine {
-  name: string;
-  badge?: string;
-  badgeColor?: BadgeColor;
+  badge: string;
+  badgeColor: BadgeColor;
 }
 
 interface AgeBand {
   id: string;
   emoji: string;
   label: string;
-  range: string;
-  vaccines: AgeBandVaccine[];
+  subtitle: string;
+  vaccines: Vaccine[];
 }
-
-const BADGE_CLASSES: Record<BadgeColor, string> = {
-  blue:   "bg-blue-50 text-blue-700",
-  green:  "bg-emerald-50 text-emerald-700",
-  orange: "bg-orange-50 text-orange-600",
-  purple: "bg-purple-50 text-purple-700",
-  teal:   "bg-teal-50 text-teal-700",
-  red:    "bg-red-50 text-red-600",
-};
 
 const AGE_BANDS: AgeBand[] = [
   {
-    id: "0-6w",
+    id: "cat0",
     emoji: "🍼",
-    label: "0–6 Weeks",
-    range: "Birth to 6 weeks",
+    label: "At Birth",
+    subtitle: "Within 24 hours of birth",
     vaccines: [
       { name: "BCG", badge: "Birth dose", badgeColor: "green" },
-      { name: "Hepatitis B", badge: "Birth dose", badgeColor: "blue" },
+      { name: "OPV-0 (Oral Polio)", badge: "Birth dose", badgeColor: "green" },
+      { name: "Hepatitis B", badge: "1st dose", badgeColor: "green" },
     ],
   },
   {
-    id: "6-14w",
+    id: "cat1",
     emoji: "👶",
-    label: "6–14 Weeks",
-    range: "6 weeks to 14 weeks",
+    label: "6 Weeks",
+    subtitle: "Primary immunization begins",
     vaccines: [
-      { name: "DPT Pentavalent (Hexaxim)", badge: "3 doses", badgeColor: "blue" },
-      { name: "OPV (Oral Polio)", badge: "3 doses", badgeColor: "blue" },
-      { name: "IPV (Injectable Polio)", badge: "2 doses", badgeColor: "blue" },
-      { name: "PCV (Prevenar)", badge: "3 doses", badgeColor: "blue" },
-      { name: "Rotavirus (Rotavac)", badge: "3 doses", badgeColor: "blue" },
-      { name: "Hepatitis B", badge: "2nd & 3rd dose", badgeColor: "blue" },
-      { name: "Meningococcal B", badge: "Optional", badgeColor: "orange" },
-      { name: "Flu (Influenza)", badge: "From 6 weeks", badgeColor: "purple" },
+      { name: "DPT + IPV + Hib + Hep B", badge: "Hexavalent – 1st dose", badgeColor: "blue" },
+      { name: "OPV", badge: "1st dose", badgeColor: "blue" },
+      { name: "Rotavirus", badge: "1st dose", badgeColor: "blue" },
+      { name: "PCV (Pneumococcal)", badge: "1st dose", badgeColor: "blue" },
     ],
   },
   {
-    id: "6-7m",
+    id: "cat2",
+    emoji: "🤱",
+    label: "10 Weeks",
+    subtitle: "Second round of primary doses",
+    vaccines: [
+      { name: "DPT + IPV + Hib + Hep B", badge: "Hexavalent – 2nd dose", badgeColor: "blue" },
+      { name: "OPV", badge: "2nd dose", badgeColor: "blue" },
+      { name: "Rotavirus", badge: "2nd dose", badgeColor: "blue" },
+      { name: "PCV (Pneumococcal)", badge: "2nd dose", badgeColor: "blue" },
+    ],
+  },
+  {
+    id: "cat3",
     emoji: "😊",
-    label: "6–7 Months",
-    range: "6 to 7 months",
+    label: "14 Weeks",
+    subtitle: "Third round of primary doses",
     vaccines: [
-      { name: "Flu (Influenza)", badge: "2 doses (1 month apart)", badgeColor: "purple" },
-      { name: "Hepatitis A", badge: "1st dose", badgeColor: "blue" },
-      { name: "Japanese Encephalitis", badge: "1st dose", badgeColor: "blue" },
+      { name: "DPT + IPV + Hib + Hep B", badge: "Hexavalent – 3rd dose", badgeColor: "blue" },
+      { name: "OPV", badge: "3rd dose", badgeColor: "blue" },
+      { name: "Rotavirus", badge: "3rd dose", badgeColor: "blue" },
+      { name: "PCV (Pneumococcal)", badge: "3rd dose", badgeColor: "blue" },
     ],
   },
   {
-    id: "9-12m",
-    emoji: "🎂",
-    label: "9–12 Months",
-    range: "9 months to 1 year",
+    id: "cat4",
+    emoji: "🍶",
+    label: "6 Months",
+    subtitle: "Half-year milestone",
+    vaccines: [
+      { name: "Typhoid Conjugate (TCV)", badge: "1st dose", badgeColor: "blue" },
+      { name: "Flu (Influenza)", badge: "1st time: 2 doses, 1 month apart", badgeColor: "purple" },
+    ],
+  },
+  {
+    id: "cat5",
+    emoji: "🎈",
+    label: "9 Months",
+    subtitle: "9 months",
     vaccines: [
       { name: "MMR", badge: "1st dose", badgeColor: "blue" },
-      { name: "Typhoid Conjugate", badge: "1st dose (9 months)", badgeColor: "blue" },
-      { name: "Chickenpox (Varicella)", badge: "1st dose (12 months)", badgeColor: "blue" },
-      { name: "Hepatitis A", badge: "1st dose (12 months)", badgeColor: "blue" },
-      { name: "Flu (Influenza)", badge: "Annual booster", badgeColor: "purple" },
+      { name: "Meningococcal ACYW", badge: "Optional – 2 doses, 3 months apart", badgeColor: "orange" },
     ],
   },
   {
-    id: "1-2y",
-    emoji: "🧒",
-    label: "1–2 Years",
-    range: "12 months to 2 years",
+    id: "cat6",
+    emoji: "🎂",
+    label: "12 Months",
+    subtitle: "1st birthday",
     vaccines: [
-      { name: "Hepatitis A", badge: "2nd dose", badgeColor: "blue" },
-      { name: "Japanese Encephalitis", badge: "2nd dose", badgeColor: "blue" },
-      { name: "Chickenpox (Varicella)", badge: "2 doses", badgeColor: "blue" },
-      { name: "DPT Pentavalent", badge: "Booster 1", badgeColor: "green" },
-      { name: "OPV", badge: "Booster 1", badgeColor: "green" },
-      { name: "PCV", badge: "Booster 1", badgeColor: "green" },
+      { name: "Hepatitis A", badge: "1st dose", badgeColor: "blue" },
+      { name: "Japanese Encephalitis (JE)", badge: "Endemic areas – 2 doses, 4 wks apart", badgeColor: "orange" },
       { name: "Flu (Influenza)", badge: "Annual booster", badgeColor: "purple" },
-      { name: "Typhoid Conjugate", badge: "At 2 yrs", badgeColor: "blue" },
-      { name: "Pneumo 23", badge: "Optional", badgeColor: "orange" },
     ],
   },
   {
-    id: "2-5y",
+    id: "cat7",
     emoji: "🌟",
-    label: "2–5 Years",
-    range: "2 years to 5 years",
+    label: "15 Months",
+    subtitle: "15 months",
     vaccines: [
       { name: "MMR", badge: "2nd dose", badgeColor: "blue" },
-      { name: "Chickenpox (Varicella)", badge: "2nd dose (if missed)", badgeColor: "blue" },
-      { name: "Typhoid Conjugate", badge: "Booster", badgeColor: "green" },
-      { name: "Hepatitis A", badge: "Catch-up if missed", badgeColor: "blue" },
-      { name: "Flu (Influenza)", badge: "Annual", badgeColor: "purple" },
-      { name: "Pneumo 23", badge: "Optional", badgeColor: "orange" },
+      { name: "Varicella (Chickenpox)", badge: "1st dose – 2nd dose 3 months later", badgeColor: "blue" },
+      { name: "PCV (Pneumococcal)", badge: "Booster", badgeColor: "green" },
     ],
   },
   {
-    id: "5-6y",
+    id: "cat8",
+    emoji: "🧒",
+    label: "18 Months",
+    subtitle: "1.5 years",
+    vaccines: [
+      { name: "DPT Pentavalent + IPV", badge: "Booster 1", badgeColor: "green" },
+      { name: "OPV", badge: "Booster 1", badgeColor: "green" },
+      { name: "Varicella (Chickenpox)", badge: "2nd dose (3 months after 1st)", badgeColor: "blue" },
+      { name: "Hepatitis A", badge: "2nd dose (6 months after 1st)", badgeColor: "blue" },
+      { name: "Flu (Influenza)", badge: "Annual booster", badgeColor: "purple" },
+    ],
+  },
+  {
+    id: "cat9",
+    emoji: "🎁",
+    label: "2 Years",
+    subtitle: "24 months",
+    vaccines: [
+      { name: "Typhoid Conjugate (TCV)", badge: "Booster – repeat every 3 yrs till 9 yrs", badgeColor: "green" },
+      { name: "Meningococcal ACYW", badge: "Optional – single dose (if not given at 9 months)", badgeColor: "orange" },
+      { name: "Flu (Influenza)", badge: "Annual", badgeColor: "purple" },
+      { name: "Pneumo 23 (PPV23)", badge: "Optional", badgeColor: "orange" },
+    ],
+  },
+  {
+    id: "cat10",
     emoji: "🎒",
-    label: "5–6 Years",
-    range: "School entry age",
+    label: "4–6 Years",
+    subtitle: "School entry age",
     vaccines: [
-      { name: "DPT", badge: "2nd Booster", badgeColor: "green" },
-      { name: "OPV", badge: "2nd Booster", badgeColor: "green" },
-      { name: "MMR", badge: "Booster (if not done)", badgeColor: "blue" },
-      { name: "Typhoid Conjugate", badge: "Booster", badgeColor: "blue" },
+      { name: "DPT Quadrivalent + IPV", badge: "Booster 2", badgeColor: "green" },
+      { name: "MMR", badge: "3rd dose (catch-up if missed)", badgeColor: "blue" },
+      { name: "Varicella", badge: "Catch-up (if missed)", badgeColor: "blue" },
       { name: "Flu (Influenza)", badge: "Annual", badgeColor: "purple" },
     ],
   },
   {
-    id: "10-12y",
+    id: "cat11",
+    emoji: "🏫",
+    label: "6–9 Years",
+    subtitle: "Primary school age",
+    vaccines: [
+      { name: "Flu (Influenza)", badge: "Annual", badgeColor: "purple" },
+      { name: "Typhoid Conjugate (TCV)", badge: "Booster every 3 yrs till 9 yrs", badgeColor: "green" },
+    ],
+  },
+  {
+    id: "cat12",
     emoji: "📚",
-    label: "10–12 Years",
-    range: "Pre-teen / adolescent",
+    label: "9–12 Years",
+    subtitle: "Pre-teen / adolescent",
     vaccines: [
-      { name: "Tdap", badge: "Booster", badgeColor: "green" },
-      { name: "HPV", badge: "2 doses (6 months apart)", badgeColor: "blue" },
-      { name: "Meningococcal (MenACWY)", badge: "Optional", badgeColor: "orange" },
-      { name: "Hepatitis B", badge: "Catch-up if missed", badgeColor: "blue" },
-      { name: "Typhoid", badge: "Booster (every 3 yrs)", badgeColor: "green" },
+      { name: "Tdap", badge: "From 9 yrs onwards", badgeColor: "green" },
+      { name: "HPV (9vHPV)", badge: "From 9 yrs – 2 doses, boys & girls", badgeColor: "blue" },
+      { name: "Meningococcal ACYW", badge: "Optional booster", badgeColor: "orange" },
       { name: "Flu (Influenza)", badge: "Annual", badgeColor: "purple" },
     ],
   },
   {
-    id: "13-18y",
+    id: "cat13",
     emoji: "🧑",
     label: "13–18 Years",
-    range: "Adolescent / teen",
+    subtitle: "Adolescent / teen",
     vaccines: [
-      { name: "HPV", badge: "3rd dose (if started late)", badgeColor: "blue" },
-      { name: "Tdap", badge: "Booster", badgeColor: "green" },
-      { name: "Meningococcal", badge: "Booster", badgeColor: "green" },
+      { name: "HPV (9vHPV)", badge: "3 doses (if started ≥15 yrs)", badgeColor: "blue" },
+      { name: "Td", badge: "Booster at 16–18 yrs", badgeColor: "green" },
       { name: "COVID-19", badge: "As recommended", badgeColor: "teal" },
       { name: "Flu (Influenza)", badge: "Annual", badgeColor: "purple" },
-      { name: "Typhoid", badge: "Booster (every 3 yrs)", badgeColor: "green" },
     ],
   },
   {
-    id: "18-45y",
+    id: "cat14",
     emoji: "🧑‍💼",
-    label: "Adults 18–45",
-    range: "Working age adults",
+    label: "Adults 18–49",
+    subtitle: "Working age adults",
     vaccines: [
       { name: "Td / Tdap", badge: "Every 10 years", badgeColor: "green" },
       { name: "Flu (Influenza)", badge: "Annual", badgeColor: "purple" },
       { name: "COVID-19", badge: "Booster as recommended", badgeColor: "teal" },
       { name: "Hepatitis B", badge: "Catch-up if missed", badgeColor: "blue" },
-      { name: "Typhoid", badge: "Booster every 3 yrs", badgeColor: "green" },
       { name: "HPV", badge: "Optional (up to 45 yrs)", badgeColor: "orange" },
-      { name: "Meningococcal", badge: "If at risk", badgeColor: "orange" },
     ],
   },
   {
-    id: "60plus",
-    emoji: "👴",
-    label: "60+ Years",
-    range: "Senior / elderly",
+    id: "cat15",
+    emoji: "🧓",
+    label: "50+ Years",
+    subtitle: "Older adults & seniors",
     vaccines: [
       { name: "Flu (Influenza)", badge: "Annual", badgeColor: "purple" },
-      { name: "Pneumococcal (PCV / Pneumo 23)", badge: "1–2 doses", badgeColor: "blue" },
-      { name: "Shingles (Shingrix / Zoster)", badge: "2 doses", badgeColor: "blue" },
+      { name: "Pneumococcal (PCV / PPV23)", badge: "1–2 doses", badgeColor: "blue" },
+      { name: "Shingles / Zoster (Shingrix)", badge: "2 doses – from 50 yrs onwards", badgeColor: "blue" },
       { name: "COVID-19", badge: "Booster as recommended", badgeColor: "teal" },
       { name: "Td / Tdap", badge: "Every 10 years", badgeColor: "green" },
     ],
   },
 ];
 
-export default function VaccineCategoriesAccordion({ categories: _categories }: VaccineCategoriesAccordionProps) {
-  const [activeTab, setActiveTab] = useState<string>(AGE_BANDS[0].id);
+export default function VaccineCategoriesAccordion() {
+  const [activeId, setActiveId] = useState<string>("cat0");
 
-  const activeBand = AGE_BANDS.find((b) => b.id === activeTab) ?? AGE_BANDS[0];
+  const active = AGE_BANDS.find((b) => b.id === activeId) ?? AGE_BANDS[0];
 
   return (
-    <section className="max-w-5xl mx-auto px-4 py-12 sm:py-16 md:py-20">
-      <div className="text-center mb-8 sm:mb-12">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+    <section className="py-14 sm:py-20 bg-[#f5f5f5]">
+      <div className="max-w-lg mx-auto px-4">
+        {/* Header */}
+        <h2 className="text-2xl font-extrabold text-center text-gray-900 mb-1">
           💉 Vaccine Schedule by Age
         </h2>
-        <p className="text-gray-500 text-sm sm:text-base max-w-xl mx-auto">
-          Select an age group to see recommended vaccines.
+        <p className="text-sm text-gray-500 text-center mb-2">
+          Select an age group to see recommended vaccines
         </p>
-      </div>
+        <span className="block mx-auto w-fit text-xs font-semibold text-[#2e7d5e] bg-[#e8f5f0] rounded-full px-4 py-1 mb-6">
+          ✅ As per IAP Schedule 2025
+        </span>
 
-      {/* Tab bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 mb-8">
-        {AGE_BANDS.map((band) => (
-          <button
-            key={band.id}
-            onClick={() => setActiveTab(band.id)}
-            className={`flex items-center gap-2 px-4 py-3 rounded-full text-sm font-medium border transition-all duration-200 ${
-              activeTab === band.id
-                ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
-                : "bg-white text-gray-700 border-gray-200 hover:border-emerald-500 hover:text-emerald-700"
-            }`}
-          >
-            <span className="text-lg leading-none">{band.emoji}</span>
-            <span>{band.label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Active band content */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        {/* Band header */}
-        <div className="bg-emerald-50 border-b border-emerald-100 px-6 py-5 flex items-center gap-4">
-          <span className="text-4xl leading-none">{activeBand.emoji}</span>
-          <div>
-            <h3 className="font-bold text-gray-900 text-xl">{activeBand.label}</h3>
-            <p className="text-emerald-700 text-sm mt-0.5">{activeBand.range}</p>
-          </div>
-          <span className="ml-auto bg-white border border-gray-200 text-gray-700 text-xs font-semibold px-3 py-1.5 rounded-full flex-shrink-0">
-            {activeBand.vaccines.length} vaccine{activeBand.vaccines.length !== 1 ? "s" : ""}
-          </span>
+        {/* Age buttons grid */}
+        <div className="grid grid-cols-2 gap-2 mb-6">
+          {AGE_BANDS.map((band) => (
+            <button
+              key={band.id}
+              onClick={() => setActiveId(band.id)}
+              className={`flex items-center gap-2 px-3 py-3 rounded-full border text-sm font-medium transition-all cursor-pointer ${
+                activeId === band.id
+                  ? "bg-[#2e7d5e] text-white border-[#2e7d5e]"
+                  : "bg-white text-gray-700 border-gray-200 hover:border-[#2e7d5e] hover:text-[#2e7d5e]"
+              }`}
+            >
+              <span className="text-lg">{band.emoji}</span>
+              {band.label}
+            </button>
+          ))}
         </div>
 
-        {/* Vaccine list */}
-        <div className="p-5 sm:p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {activeBand.vaccines.map((vaccine, idx) => (
+        {/* Vaccine card */}
+        <div className="bg-white rounded-2xl overflow-hidden shadow-md">
+          {/* Card header */}
+          <div className="bg-[#e8f5f0] px-4 py-4 flex items-center gap-3">
+            <span className="text-4xl leading-none">{active.emoji}</span>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-xl font-bold text-gray-900">{active.label}</h3>
+              <p className="text-xs text-[#2e7d5e] font-medium mt-0.5">{active.subtitle}</p>
+            </div>
+            <span className="bg-white border border-gray-300 rounded-full px-3 py-1 text-xs font-semibold text-gray-700 whitespace-nowrap flex-shrink-0">
+              {active.vaccines.length} vaccine{active.vaccines.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+
+          {/* Vaccine list */}
+          <div className="px-3 pb-3 pt-1">
+            {active.vaccines.map((v, i) => (
               <div
-                key={idx}
-                className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 border border-gray-100 gap-2"
+                key={i}
+                className="flex items-center justify-between bg-[#fafafa] border border-[#f0f0f0] rounded-xl px-3 py-3 mt-2 gap-2"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0" />
-                  <span className="font-medium text-gray-900 text-sm">{vaccine.name}</span>
+                  <div className="w-2 h-2 rounded-full bg-[#2e7d5e] flex-shrink-0" />
+                  <span className="text-sm font-medium text-gray-900">{v.name}</span>
                 </div>
-                {vaccine.badge && (
-                  <span
-                    className={`text-xs px-2.5 py-0.5 rounded-full font-semibold flex-shrink-0 ${
-                      BADGE_CLASSES[vaccine.badgeColor ?? "blue"]
-                    }`}
-                  >
-                    {vaccine.badge}
-                  </span>
-                )}
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap flex-shrink-0 ${BADGE_CLASSES[v.badgeColor]}`}
+                >
+                  {v.badge}
+                </span>
               </div>
             ))}
           </div>

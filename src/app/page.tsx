@@ -259,7 +259,7 @@ export default async function HomePage() {
 
       {/* ── Vaccine Categories Accordion (dynamic from DB, with demo fallback) ── */}
       <div className="bg-gray-50">
-        <VaccineCategoriesAccordion categories={categoriesWithItems} />
+        <VaccineCategoriesAccordion />
       </div>
 
       {/* ── Features ── */}
