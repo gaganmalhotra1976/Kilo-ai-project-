@@ -30,6 +30,12 @@ interface Pipeline {
   description: string | null;
 }
 
+interface Staff {
+  id: number;
+  name: string;
+  role: string;
+}
+
 const PRIORITY_COLORS: Record<string, string> = {
   low: "bg-gray-100 text-gray-600",
   medium: "bg-blue-100 text-blue-700",
@@ -48,6 +54,7 @@ export default function PipelineBoardPage() {
   const [pipeline, setPipeline] = useState<Pipeline | null>(null);
   const [stages, setStages] = useState<Stage[]>([]);
   const [cards, setCards] = useState<Card[]>([]);
+  const [staff, setStaff] = useState<Staff[]>([]);
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const [loading, setLoading] = useState(true);
 
@@ -74,8 +81,9 @@ export default function PipelineBoardPage() {
       fetch(`/api/pipelines/${pipelineId}`).then(r => r.json()),
       fetch(`/api/pipeline-stages?pipelineId=${pipelineId}`).then(r => r.json()),
       fetch(`/api/pipeline-cards?pipelineId=${pipelineId}`).then(r => r.json()),
-    ]).then(([p, s, c]) => {
-      if (!cancelled) { setPipeline(p); setStages(s); setCards(c); setLoading(false); }
+      fetch(`/api/staff?role=Nurse,Operations`).then(r => r.json()),
+    ]).then(([p, s, c, st]) => {
+      if (!cancelled) { setPipeline(p); setStages(s); setCards(c); setStaff(st); setLoading(false); }
     }).catch(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [pipelineId, refreshKey]);
@@ -244,12 +252,16 @@ export default function PipelineBoardPage() {
                         <option value="high">High priority</option>
                         <option value="urgent">Urgent</option>
                       </select>
-                      <input
+                      <select
                         className="w-full text-xs border border-gray-200 rounded px-2 py-1 mb-2 focus:outline-none"
-                        placeholder="Assigned to (optional)"
                         value={newCardAssigned}
                         onChange={e => setNewCardAssigned(e.target.value)}
-                      />
+                      >
+                        <option value="">Unassigned</option>
+                        {staff.map(s => (
+                          <option key={s.id} value={s.name}>{s.name} ({s.role})</option>
+                        ))}
+                      </select>
                       <input
                         type="date"
                         className="w-full text-xs border border-gray-200 rounded px-2 py-1 mb-2 focus:outline-none"
@@ -409,11 +421,16 @@ export default function PipelineBoardPage() {
 
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Assigned To</label>
-                  <input
+                  <select
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     value={editCard.assignedTo ?? ""}
                     onChange={e => setEditCard(p => ({ ...p, assignedTo: e.target.value || null }))}
-                  />
+                  >
+                    <option value="">Unassigned</option>
+                    {staff.map(s => (
+                      <option key={s.id} value={s.name}>{s.name} ({s.role})</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>

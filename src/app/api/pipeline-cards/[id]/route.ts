@@ -1,7 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { pipelineCards, pipelineCardHistory } from "@/db/schema";
+import { pipelineCards, pipelineCardHistory, pipelineStages } from "@/db/schema";
 import { eq } from "drizzle-orm";
+
+// Webhook configuration
+const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || "https://n8n.example.com/webhook/pipeline.stage.changed";
+
+async function triggerN8nWebhook(cardId: number, stageName: string, bookingId: number | null, cardTitle: string) {
+  try {
+    const webhookPayload = {
+      event: "pipeline.stage.changed",
+      cardId,
+      stageName,
+      bookingId,
+      cardTitle,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Fire and forget - don't await to avoid blocking the response
+    fetch(N8N_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(webhookPayload)
+    }).catch(err => console.error("Webhook trigger failed:", err));
+    
+    console.log(`🔗 Triggered webhook for stage: ${stageName}, card: ${cardTitle}`);
+  } catch (error) {
+    console.error("Webhook error:", error);
+  }
+}
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -39,6 +66,12 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         toStageId: stageId,
         movedBy: movedBy ?? "admin",
       });
+
+      // Check if moving to "Nurse Assigned" stage and trigger webhook
+      const [newStage] = await db.select().from(pipelineStages).where(eq(pipelineStages.id, stageId));
+      if (newStage && newStage.name === "Nurse Assigned") {
+        await triggerN8nWebhook(Number(id), newStage.name, row.bookingId, row.title);
+      }
     }
 
     return NextResponse.json(row);
