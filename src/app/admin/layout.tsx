@@ -19,6 +19,7 @@ const navItems = [
   { href: "/admin/promo-popup", label: "Promo Popup", icon: "🎉" },
   { href: "/admin/vaccine-categories", label: "Vaccine Categories", icon: "🗂️" },
   { href: "/admin/blog-posts", label: "Blog Posts", icon: "✍️" },
+  { href: "/admin/pipelines", label: "Pipelines", icon: "🗃️" },
 ];
 
 export default function AdminLayout({

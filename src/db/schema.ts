@@ -200,3 +200,75 @@ export const blogPosts = sqliteTable("blog_posts", {
     () => new Date()
   ),
 });
+
+// ── Pipelines ───────────────────────────────────────────────────────────────
+export const pipelines = sqliteTable("pipelines", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  description: text("description"),
+  isArchived: integer("is_archived", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// ── Pipeline Stages ─────────────────────────────────────────────────────────
+export const pipelineStages = sqliteTable("pipeline_stages", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  pipelineId: integer("pipeline_id").notNull().references(() => pipelines.id),
+  name: text("name").notNull(),
+  color: text("color").notNull().default("#6366f1"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// ── Pipeline Cards ──────────────────────────────────────────────────────────
+export const pipelineCards = sqliteTable("pipeline_cards", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  pipelineId: integer("pipeline_id").notNull().references(() => pipelines.id),
+  stageId: integer("stage_id").notNull().references(() => pipelineStages.id),
+  title: text("title").notNull(),
+  customerId: integer("customer_id").references(() => customers.id),
+  customerName: text("customer_name"),
+  assignedTo: text("assigned_to"),
+  dueDate: text("due_date"),
+  priority: text("priority").notNull().default("medium"),
+  notes: text("notes"),
+  attachments: text("attachments"),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  quoteId: integer("quote_id").references(() => quotes.id),
+  isArchived: integer("is_archived", { mode: "boolean" }).notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// ── Pipeline Card Stage History ─────────────────────────────────────────────
+export const pipelineCardHistory = sqliteTable("pipeline_card_history", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  cardId: integer("card_id").notNull().references(() => pipelineCards.id),
+  fromStageId: integer("from_stage_id").references(() => pipelineStages.id),
+  toStageId: integer("to_stage_id").notNull().references(() => pipelineStages.id),
+  movedBy: text("moved_by"),
+  movedAt: integer("moved_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  note: text("note"),
+});
+
+// ── Pipeline Custom Fields ──────────────────────────────────────────────────
+export const pipelineCustomFields = sqliteTable("pipeline_custom_fields", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  pipelineId: integer("pipeline_id").notNull().references(() => pipelines.id),
+  name: text("name").notNull(),
+  fieldType: text("field_type").notNull().default("text"),
+  options: text("options"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// ── Pipeline Card Custom Field Values ───────────────────────────────────────
+export const pipelineCardFieldValues = sqliteTable("pipeline_card_field_values", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  cardId: integer("card_id").notNull().references(() => pipelineCards.id),
+  fieldId: integer("field_id").notNull().references(() => pipelineCustomFields.id),
+  value: text("value"),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});

@@ -1,0 +1,42 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { pipelineCards, pipelineCardHistory } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
+
+export async function GET(req: NextRequest) {
+  const pipelineId = req.nextUrl.searchParams.get("pipelineId");
+  const stageId = req.nextUrl.searchParams.get("stageId");
+  try {
+    let query = db.select().from(pipelineCards).$dynamic();
+    const conditions = [eq(pipelineCards.isArchived, false)];
+    if (pipelineId) conditions.push(eq(pipelineCards.pipelineId, Number(pipelineId)));
+    if (stageId) conditions.push(eq(pipelineCards.stageId, Number(stageId)));
+    const rows = await query.where(and(...conditions)).orderBy(pipelineCards.sortOrder);
+    return NextResponse.json(rows);
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Failed to fetch cards" }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const { pipelineId, stageId, title, customerId, customerName, assignedTo, dueDate, priority, notes, bookingId, quoteId } = body;
+    if (!pipelineId || !stageId || !title) {
+      return NextResponse.json({ error: "pipelineId, stageId, title required" }, { status: 400 });
+    }
+    const [row] = await db.insert(pipelineCards).values({
+      pipelineId, stageId, title, customerId, customerName, assignedTo, dueDate,
+      priority: priority ?? "medium", notes, bookingId, quoteId,
+    }).returning();
+    // Log initial stage placement
+    await db.insert(pipelineCardHistory).values({
+      cardId: row.id, fromStageId: null, toStageId: stageId, movedBy: "system", note: "Card created",
+    });
+    return NextResponse.json(row, { status: 201 });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Failed to create card" }, { status: 500 });
+  }
+}
