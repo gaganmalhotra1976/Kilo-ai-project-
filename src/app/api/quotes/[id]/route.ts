@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { quotes, bookings } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { triggerQuoteSent } from "@/lib/webhooks";
 
 // PATCH /api/quotes/[id] — update quote status (send, approve, reject)
 export async function PATCH(
@@ -38,6 +39,11 @@ export async function PATCH(
         .update(bookings)
         .set({ status: "confirmed", updatedAt: new Date() })
         .where(eq(bookings.id, updated[0].bookingId));
+    }
+
+    // Trigger webhook for quote sent
+    if (status === "sent") {
+      await triggerQuoteSent(updated[0]);
     }
 
     return NextResponse.json(updated[0]);

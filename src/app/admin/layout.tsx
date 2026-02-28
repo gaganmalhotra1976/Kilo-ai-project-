@@ -20,6 +20,7 @@ const navItems = [
   { href: "/admin/vaccine-categories", label: "Vaccine Categories", icon: "🗂️" },
   { href: "/admin/blog-posts", label: "Blog Posts", icon: "✍️" },
   { href: "/admin/pipelines", label: "Pipelines", icon: "🗃️" },
+  { href: "/admin/webhooks", label: "Webhooks", icon: "🔗" },
 ];
 
 export default function AdminLayout({

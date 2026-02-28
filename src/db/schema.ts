@@ -272,3 +272,54 @@ export const pipelineCardFieldValues = sqliteTable("pipeline_card_field_values",
   value: text("value"),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
+
+// ── Settings ───────────────────────────────────────────────────────────────
+export const settings = sqliteTable("settings", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+  description: text("description"),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// ── Webhook Logs ────────────────────────────────────────────────────────────
+export const webhookLogs = sqliteTable("webhook_logs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  event: text("event").notNull(),
+  payload: text("payload").notNull(),
+  responseCode: integer("response_code"),
+  responseBody: text("response_body"),
+  success: integer("success", { mode: "boolean" }).notNull().default(false),
+  errorMessage: text("error_message"),
+  triggeredBy: text("triggered_by"),
+  retryCount: integer("retry_count").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// ── Support Tickets ──────────────────────────────────────────────────────────
+export const supportTickets = sqliteTable("support_tickets", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  customerId: integer("customer_id").references(() => customers.id),
+  subject: text("subject").notNull(),
+  description: text("description").notNull(),
+  priority: text("priority").notNull().default("medium"),
+  status: text("status").notNull().default("open"),
+  resolvedAt: integer("resolved_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// ── Payments ────────────────────────────────────────────────────────────────
+export const payments = sqliteTable("payments", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  amount: real("amount").notNull(),
+  paymentMethod: text("payment_method").notNull(),
+  transactionId: text("transaction_id"),
+  status: text("status").notNull().default("pending"),
+  receivedAt: integer("received_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
