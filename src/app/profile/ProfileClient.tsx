@@ -210,7 +210,14 @@ export function ProfileClient() {
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="font-medium text-gray-900">
-                          {JSON.parse(booking.vaccinesRequested).join(", ")}
+                          {(() => {
+                            try {
+                              const parsed = JSON.parse(booking.vaccinesRequested);
+                              return Array.isArray(parsed) ? parsed.join(", ") : booking.vaccinesRequested;
+                            } catch {
+                              return booking.vaccinesRequested;
+                            }
+                          })()}
                         </p>
                         <p className="text-sm text-gray-500 mt-1">
                           {booking.preferredDate
