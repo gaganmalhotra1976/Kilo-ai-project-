@@ -174,3 +174,27 @@ export const vaccineCategoryItems = sqliteTable("vaccine_category_items", {
     () => new Date()
   ),
 });
+
+// ── Blog Posts ──────────────────────────────────────────────────────────────
+export const blogPosts = sqliteTable("blog_posts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  excerpt: text("excerpt"), // Short description for SEO meta description & cards
+  content: text("content").notNull(), // HTML content
+  coverImageUrl: text("cover_image_url"),
+  metaTitle: text("meta_title"), // Override SEO title (defaults to title)
+  metaDescription: text("meta_description"), // SEO meta description
+  metaKeywords: text("meta_keywords"), // Comma-separated keywords
+  author: text("author").notNull().default("The Vaccine Panda Team"),
+  category: text("category"), // e.g. "Vaccines", "Child Health", "Travel"
+  tags: text("tags"), // JSON array of tag strings
+  isPublished: integer("is_published", { mode: "boolean" }).notNull().default(false),
+  publishedAt: integer("published_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+});
