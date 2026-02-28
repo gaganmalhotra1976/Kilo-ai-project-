@@ -22,12 +22,18 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { pipelineId, name, fieldType, options, sortOrder } = body;
     if (!pipelineId || !name) return NextResponse.json({ error: "pipelineId and name required" }, { status: 400 });
-    const [row] = await db.insert(pipelineCustomFields).values({
-      pipelineId, name, fieldType: fieldType ?? "text",
-      options: options ? JSON.stringify(options) : null,
-      sortOrder: sortOrder ?? 0,
-    }).returning();
-    return NextResponse.json(row, { status: 201 });
+    
+    try {
+      const [row] = await db.insert(pipelineCustomFields).values({
+        pipelineId, name, fieldType: fieldType ?? "text",
+        options: options ? JSON.stringify(options) : null,
+        sortOrder: sortOrder ?? 0,
+      }).returning();
+      return NextResponse.json(row, { status: 201 });
+    } catch (dbError) {
+      console.error("Pipeline custom fields table doesn't exist:", dbError);
+      return NextResponse.json({ error: "Pipeline system not available. Please apply database migration 0007." }, { status: 503 });
+    }
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Failed to create custom field" }, { status: 500 });

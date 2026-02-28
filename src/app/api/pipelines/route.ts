@@ -19,8 +19,15 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { name, description } = body;
     if (!name) return NextResponse.json({ error: "name is required" }, { status: 400 });
-    const [row] = await db.insert(pipelines).values({ name, description }).returning();
-    return NextResponse.json(row, { status: 201 });
+    
+    try {
+      const [row] = await db.insert(pipelines).values({ name, description }).returning();
+      return NextResponse.json(row, { status: 201 });
+    } catch (dbError) {
+      // Table doesn't exist - return specific error
+      console.error("Pipeline table doesn't exist:", dbError);
+      return NextResponse.json({ error: "Pipeline system not available. Please apply database migration 0007." }, { status: 503 });
+    }
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Failed to create pipeline" }, { status: 500 });

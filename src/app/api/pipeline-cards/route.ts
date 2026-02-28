@@ -27,15 +27,21 @@ export async function POST(req: NextRequest) {
     if (!pipelineId || !stageId || !title) {
       return NextResponse.json({ error: "pipelineId, stageId, title required" }, { status: 400 });
     }
-    const [row] = await db.insert(pipelineCards).values({
-      pipelineId, stageId, title, customerId, customerName, assignedTo, dueDate,
-      priority: priority ?? "medium", notes, bookingId, quoteId,
-    }).returning();
-    // Log initial stage placement
-    await db.insert(pipelineCardHistory).values({
-      cardId: row.id, fromStageId: null, toStageId: stageId, movedBy: "system", note: "Card created",
-    });
-    return NextResponse.json(row, { status: 201 });
+    
+    try {
+      const [row] = await db.insert(pipelineCards).values({
+        pipelineId, stageId, title, customerId, customerName, assignedTo, dueDate,
+        priority: priority ?? "medium", notes, bookingId, quoteId,
+      }).returning();
+      // Log initial stage placement
+      await db.insert(pipelineCardHistory).values({
+        cardId: row.id, fromStageId: null, toStageId: stageId, movedBy: "system", note: "Card created",
+      });
+      return NextResponse.json(row, { status: 201 });
+    } catch (dbError) {
+      console.error("Pipeline cards table doesn't exist:", dbError);
+      return NextResponse.json({ error: "Pipeline system not available. Please apply database migration 0007." }, { status: 503 });
+    }
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Failed to create card" }, { status: 500 });

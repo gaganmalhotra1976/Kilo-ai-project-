@@ -34,11 +34,19 @@ export default function PipelinesPage() {
   async function createPipeline() {
     if (!newName.trim()) return;
     setSaving(true);
-    await fetch("/api/pipelines", {
+    const response = await fetch("/api/pipelines", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: newName.trim(), description: newDesc.trim() || null }),
     });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      alert(errorData.error || "Failed to create pipeline");
+      setSaving(false);
+      return;
+    }
+    
     setNewName(""); setNewDesc(""); setShowCreate(false); setSaving(false);
     reload();
   }

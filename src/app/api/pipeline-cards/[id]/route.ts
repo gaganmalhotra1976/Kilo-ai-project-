@@ -17,7 +17,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json(row);
   } catch (e) {
     console.error(e);
-    return NextResponse.json({ error: "Failed to fetch card" }, { status: 500 });
+    return NextResponse.json({ error: "Pipeline system not available" }, { status: 503 });
   }
 }
 
@@ -27,40 +27,45 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const body = await req.json();
     const { stageId, title, customerId, customerName, assignedTo, dueDate, priority, notes, attachments, bookingId, quoteId, isArchived, sortOrder, movedBy } = body;
 
-    // Fetch current card to detect stage change
-    const [current] = await db.select().from(pipelineCards).where(eq(pipelineCards.id, Number(id)));
-    if (!current) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    try {
+      // Fetch current card to detect stage change
+      const [current] = await db.select().from(pipelineCards).where(eq(pipelineCards.id, Number(id)));
+      if (!current) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    const [row] = await db
-      .update(pipelineCards)
-      .set({ stageId, title, customerId, customerName, assignedTo, dueDate, priority, notes, attachments, bookingId, quoteId, isArchived, sortOrder, updatedAt: new Date() })
-      .where(eq(pipelineCards.id, Number(id)))
-      .returning();
+      const [row] = await db
+        .update(pipelineCards)
+        .set({ stageId, title, customerId, customerName, assignedTo, dueDate, priority, notes, attachments, bookingId, quoteId, isArchived, sortOrder, updatedAt: new Date() })
+        .where(eq(pipelineCards.id, Number(id)))
+        .returning();
 
-    // Log stage change
-    if (stageId && stageId !== current.stageId) {
-      await db.insert(pipelineCardHistory).values({
-        cardId: Number(id),
-        fromStageId: current.stageId,
-        toStageId: stageId,
-        movedBy: movedBy ?? "admin",
-      });
-
-      // Trigger webhook for stage change using unified system
-      const [newStage] = await db.select().from(pipelineStages).where(eq(pipelineStages.id, stageId));
-      if (newStage) {
-        await triggerPipelineStageChanged({
+      // Log stage change
+      if (stageId && stageId !== current.stageId) {
+        await db.insert(pipelineCardHistory).values({
           cardId: Number(id),
-          stageId: stageId,
-          stageName: newStage.name,
-          bookingId: row.bookingId,
-          cardTitle: row.title,
-          previousStageId: current.stageId
-        }, movedBy ?? "admin");
-      }
-    }
+          fromStageId: current.stageId,
+          toStageId: stageId,
+          movedBy: movedBy ?? "admin",
+        });
 
-    return NextResponse.json(row);
+        // Trigger webhook for stage change using unified system
+        const [newStage] = await db.select().from(pipelineStages).where(eq(pipelineStages.id, stageId));
+        if (newStage) {
+          await triggerPipelineStageChanged({
+            cardId: Number(id),
+            stageId: stageId,
+            stageName: newStage.name,
+            bookingId: row.bookingId,
+            cardTitle: row.title,
+            previousStageId: current.stageId
+          }, movedBy ?? "admin");
+        }
+      }
+
+      return NextResponse.json(row);
+    } catch (dbError) {
+      console.error("Pipeline cards table doesn't exist:", dbError);
+      return NextResponse.json({ error: "Pipeline system not available. Please apply database migration 0007." }, { status: 503 });
+    }
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Failed to update card" }, { status: 500 });
@@ -70,8 +75,13 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
-    await db.delete(pipelineCards).where(eq(pipelineCards.id, Number(id)));
-    return NextResponse.json({ success: true });
+    try {
+      await db.delete(pipelineCards).where(eq(pipelineCards.id, Number(id)));
+      return NextResponse.json({ success: true });
+    } catch (dbError) {
+      console.error("Pipeline cards table doesn't exist:", dbError);
+      return NextResponse.json({ error: "Pipeline system not available. Please apply database migration 0007." }, { status: 503 });
+    }
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Failed to delete card" }, { status: 500 });
