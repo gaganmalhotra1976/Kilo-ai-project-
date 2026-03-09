@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { pipelineCards, pipelineCardHistory } from "@/db/schema";
+import { pipelineCards, pipelineCardHistory, pipelines, pipelineStages } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { pipelineId, stageId, title, customerId, customerName, assignedTo, dueDate, priority, notes, bookingId, quoteId } = body;
+    const { pipelineId, stageId, title, customerId, customerName, assignedTo, dueDate, priority, notes, bookingId, quoteId, source } = body;
     if (!pipelineId || !stageId || !title) {
       return NextResponse.json({ error: "pipelineId, stageId, title required" }, { status: 400 });
     }
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     try {
       const [row] = await db.insert(pipelineCards).values({
         pipelineId, stageId, title, customerId, customerName, assignedTo, dueDate,
-        priority: priority ?? "medium", notes, bookingId, quoteId,
+        priority: priority ?? "medium", notes, bookingId, quoteId, source,
       }).returning();
       // Log initial stage placement
       await db.insert(pipelineCardHistory).values({

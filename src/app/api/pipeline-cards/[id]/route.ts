@@ -1,12 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { pipelineCards, pipelineCardHistory, pipelineStages } from "@/db/schema";
+import { pipelineCards, pipelineCardHistory, pipelineStages, bookings, payments } from "@/db/schema";
 import { eq } from "drizzle-orm";
-// import { triggerPipelineStageChanged } from "@/lib/webhooks";
+import { triggerPipelineStageChanged as sendPipelineWebhook } from "@/lib/webhooks";
 
-// Temporarily disabled - can be re-enabled after database migration
-async function triggerPipelineStageChanged(_cardData: any, _triggeredBy: string | null = null) {
-  console.log("Webhook disabled until migration is applied");
+// Helper webhook function (enabled now)
+async function triggerPipelineStageChanged(cardData: any, triggeredBy: string | null = null) {
+  try {
+    await sendPipelineWebhook(cardData, triggeredBy);
+  } catch (error) {
+    console.error("Error triggering pipeline stage webhook:", error);
+  }
+}
+
+// Helper function to sync booking status when pipeline stage changes
+async function syncBookingStatus(card: any, newStageName: string) {
+  if (!card.bookingId) return;
+
+  try {
+    let newBookingStatus: string | null = null;
+    let newPaymentStatus: string | null = null;
+
+    switch (newStageName) {
+      case "Quote Sent":
+        newBookingStatus = "quoted";
+        break;
+      case "Advance Received":
+        newBookingStatus = "confirmed";
+        newPaymentStatus = "partial";
+        break;
+      case "Converted / Fully Paid":
+        newBookingStatus = "confirmed";
+        newPaymentStatus = "paid";
+        break;
+      case "Lost":
+        newBookingStatus = "cancelled";
+        break;
+    }
+
+    if (newBookingStatus) {
+      const updateData: any = { 
+        status: newBookingStatus,
+        updatedAt: new Date() 
+      };
+      
+      if (newPaymentStatus) {
+        updateData.paymentStatus = newPaymentStatus;
+      }
+
+      await db.update(bookings)
+        .set(updateData)
+        .where(eq(bookings.id, card.bookingId));
+    }
+  } catch (error) {
+    console.error("Error syncing booking status:", error);
+  }
 }
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -47,9 +95,28 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           movedBy: movedBy ?? "admin",
         });
 
-        // Trigger webhook for stage change using unified system
+        // Get new stage name for booking status sync
         const [newStage] = await db.select().from(pipelineStages).where(eq(pipelineStages.id, stageId));
         if (newStage) {
+          // Sync booking status based on pipeline stage
+          await syncBookingStatus(row, newStage.name);
+
+          // Create payment record if advance received
+          if (newStage.name === "Advance Received" && body.amountReceived) {
+            try {
+              await db.insert(payments).values({
+                bookingId: row.bookingId,
+                amount: body.amountReceived,
+                paymentMethod: body.paymentMethod || "Cash",
+                status: "received",
+                receivedAt: new Date(),
+              });
+            } catch (paymentError) {
+              console.error("Error creating payment record:", paymentError);
+            }
+          }
+
+          // Trigger webhook for stage change using unified system
           await triggerPipelineStageChanged({
             cardId: Number(id),
             stageId: stageId,

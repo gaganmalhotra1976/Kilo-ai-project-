@@ -33,6 +33,7 @@ export const bookings = sqliteTable("bookings", {
   preferredTime: text("preferred_time"),
   patientNames: text("patient_names"), // JSON array of patient names (self + selected family members)
   status: text("status").notNull().default("pending"), // pending | quoted | confirmed | completed | cancelled
+  paymentStatus: text("payment_status").notNull().default("unpaid"), // unpaid | paid | partial
   adminNotes: text("admin_notes"),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()
@@ -236,6 +237,9 @@ export const pipelineCards = sqliteTable("pipeline_cards", {
   attachments: text("attachments"),
   bookingId: integer("booking_id").references(() => bookings.id),
   quoteId: integer("quote_id").references(() => quotes.id),
+  source: text("source"), // website | phone | whatsapp | referral | walkin
+  amountReceived: real("amount_received"),
+  paymentMethod: text("payment_method"), // Cash | UPI | Bank Transfer
   isArchived: integer("is_archived", { mode: "boolean" }).notNull().default(false),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),

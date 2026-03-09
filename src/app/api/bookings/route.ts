@@ -1,11 +1,104 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { bookings, customers } from "@/db/schema";
+import { bookings, customers, pipelines, pipelineStages, pipelineCards, pipelineCardHistory } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
-// import { triggerBookingCreated } from "@/lib/webhooks";
+import { triggerBookingCreated as sendBookingWebhook } from "@/lib/webhooks";
 
-// Stub function to prevent build errors
-async function triggerBookingCreated(_data: any) { console.log("Webhook stub: triggerBookingCreated"); }
+// Helper webhook function (enabled now)
+async function triggerBookingCreated(bookingData: any) {
+  try {
+    await sendBookingWebhook(bookingData, "system");
+  } catch (error) {
+    console.error("Error triggering booking created webhook:", error);
+  }
+}
+
+// Helper function to get or create Sales pipeline with required stages
+async function getOrCreateSalesPipeline() {
+  try {
+    // Check if Sales pipeline already exists
+    const existingPipelines = await db.select().from(pipelines).where(eq(pipelines.name, "Sales"));
+    let salesPipeline = existingPipelines[0];
+
+    if (!salesPipeline) {
+      // Create Sales pipeline
+      const [created] = await db.insert(pipelines).values({ 
+        name: "Sales", 
+        description: "Sales pipeline for managing leads and bookings" 
+      }).returning();
+      salesPipeline = created;
+
+      // Create required stages
+      const stages = [
+        { name: "New Lead - Website", color: "#3b82f6", sortOrder: 0 },
+        { name: "New Lead - Manual", color: "#8b5cf6", sortOrder: 1 },
+        { name: "Quote Sent", color: "#f59e0b", sortOrder: 2 },
+        { name: "Advance Received", color: "#10b981", sortOrder: 3 },
+        { name: "Converted / Fully Paid", color: "#059669", sortOrder: 4 },
+        { name: "Lost", color: "#ef4444", sortOrder: 5 },
+      ];
+
+      for (const stage of stages) {
+        await db.insert(pipelineStages).values({
+          pipelineId: salesPipeline.id,
+          ...stage
+        });
+      }
+    }
+
+    return salesPipeline;
+  } catch (error) {
+    console.error("Error getting/creating Sales pipeline:", error);
+    return null;
+  }
+}
+
+// Helper function to create pipeline card for booking
+async function createSalesPipelineCard(booking: any) {
+  try {
+    const salesPipeline = await getOrCreateSalesPipeline();
+    if (!salesPipeline) {
+      console.error("Failed to get Sales pipeline");
+      return null;
+    }
+
+    // Get the "New Lead - Website" stage
+    const stages = await db.select().from(pipelineStages)
+      .where(eq(pipelineStages.pipelineId, salesPipeline.id));
+    
+    const websiteStage = stages.find(s => s.name === "New Lead - Website");
+    if (!websiteStage) {
+      console.error("New Lead - Website stage not found");
+      return null;
+    }
+
+    // Create pipeline card
+    const [card] = await db.insert(pipelineCards).values({
+      pipelineId: salesPipeline.id,
+      stageId: websiteStage.id,
+      title: `Booking #${booking.id} - ${booking.customerName}`,
+      customerId: booking.customerId,
+      customerName: booking.customerName,
+      bookingId: booking.id,
+      source: "website",
+      priority: "medium",
+    }).returning();
+
+    // Log initial stage placement
+    await db.insert(pipelineCardHistory).values({
+      cardId: card.id,
+      fromStageId: null,
+      toStageId: websiteStage.id,
+      movedBy: "system",
+      note: "Card created from website booking",
+    });
+
+    return card;
+  } catch (error) {
+    console.error("Error creating pipeline card:", error);
+    return null;
+  }
+}
 
 // GET /api/bookings — list all bookings (admin)
 export async function GET(req: NextRequest) {
@@ -97,11 +190,15 @@ export async function POST(req: NextRequest) {
         preferredTime: preferredTime || null,
         patientNames: patientNames ? JSON.stringify(patientNames) : null,
         status: "pending",
+        paymentStatus: "unpaid",
       })
       .returning();
 
+    // Create Sales Pipeline card for this booking
+    await createSalesPipelineCard(inserted[0]);
+
     // Trigger webhook for new booking creation
-    // await triggerBookingCreated(inserted[0]);
+    await triggerBookingCreated(inserted[0]);
 
     return NextResponse.json(inserted[0], { status: 201 });
   } catch (err) {
