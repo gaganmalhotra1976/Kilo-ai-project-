@@ -50,9 +50,12 @@ export const quotes = sqliteTable("quotes", {
   bookingId: integer("booking_id")
     .notNull()
     .references(() => bookings.id),
-  lineItems: text("line_items").notNull(), // JSON: [{vaccine, qty, unitPrice, gstPct}]
+  lineItems: text("line_items").notNull(), // JSON: [{vaccine, qty, unitPrice, gstPct, batch, expiry}]
   convenienceFee: real("convenience_fee").notNull().default(0),
+  discountType: text("discount_type"), // percentage | flat | null
+  discountValue: real("discount_value").notNull().default(0),
   subtotal: real("subtotal").notNull(),
+  discountAmount: real("discount_amount").notNull().default(0),
   gstAmount: real("gst_amount").notNull(),
   total: real("total").notNull(),
   validUntil: text("valid_until"), // ISO date

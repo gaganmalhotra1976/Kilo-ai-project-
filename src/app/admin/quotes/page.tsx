@@ -89,6 +89,17 @@ export default async function AdminQuotesPage() {
                     <td className="px-5 py-4">
                       <QuoteStatusButton quoteId={q.id} currentStatus={q.status} />
                     </td>
+                    <td className="px-5 py-4">
+                      <div className="flex gap-2">
+                        <Link
+                          href={`/admin/quotes/${q.id}`}
+                          className="text-emerald-600 hover:underline text-xs font-medium"
+                          target="_blank"
+                        >
+                          View/Print
+                        </Link>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

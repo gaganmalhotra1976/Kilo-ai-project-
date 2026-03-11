@@ -18,6 +18,9 @@ type Quote = {
   subtotal: number;
   gstAmount: number;
   convenienceFee: number;
+  discountType: string | null;
+  discountValue: number;
+  discountAmount: number;
   lineItems: string;
   createdAt: Date | null;
 };
@@ -27,6 +30,8 @@ type LineItem = {
   qty: number;
   unitPrice: number;
   gstPct: number;
+  batch?: string;
+  expiry?: string;
 };
 
 const BOOKING_STATUSES = ["pending", "quoted", "confirmed", "completed", "cancelled"];
@@ -52,11 +57,13 @@ export default function BookingActions({
   const [saving, setSaving] = useState(false);
   const [showQuoteForm, setShowQuoteForm] = useState(false);
   const [lineItems, setLineItems] = useState<LineItem[]>([
-    { vaccine: "", qty: 1, unitPrice: 0, gstPct: 12 },
+    { vaccine: "", qty: 1, unitPrice: 0, gstPct: 12, batch: "", expiry: "" },
   ]);
   const [convenienceFee, setConvenienceFee] = useState(
     booking.bookingType === "family" || booking.numberOfPeople >= 3 ? 0 : 200
   );
+  const [discountType, setDiscountType] = useState<string>("");
+  const [discountValue, setDiscountValue] = useState(0);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState("");
 
@@ -72,7 +79,7 @@ export default function BookingActions({
   }
 
   function addLineItem() {
-    setLineItems((prev) => [...prev, { vaccine: "", qty: 1, unitPrice: 0, gstPct: 12 }]);
+    setLineItems((prev) => [...prev, { vaccine: "", qty: 1, unitPrice: 0, gstPct: 12, batch: "", expiry: "" }]);
   }
 
   function removeLineItem(i: number) {
@@ -86,11 +93,31 @@ export default function BookingActions({
   }
 
   const subtotal = lineItems.reduce((sum, item) => sum + item.qty * item.unitPrice, 0) + convenienceFee;
+  
+  // Calculate discount amount
+  let discountAmount = 0;
+  if (discountType === "percentage") {
+    discountAmount = (subtotal * discountValue) / 100;
+  } else if (discountType === "flat") {
+    discountAmount = discountValue;
+  }
+  
+  const afterDiscount = subtotal - discountAmount;
+  
+  // GST Inclusive calculation: price shown to customer includes GST
+  // GST Amount = Total - (Total / (1 + GST%))
   const gstAmount = lineItems.reduce(
-    (sum, item) => sum + (item.qty * item.unitPrice * item.gstPct) / 100,
+    (sum, item) => {
+      const itemTotal = item.qty * item.unitPrice;
+      const itemDiscount = discountType && discountValue > 0 ? (itemTotal / subtotal) * discountAmount : 0;
+      const itemAfterDiscount = itemTotal - itemDiscount;
+      const basePrice = itemAfterDiscount / (1 + item.gstPct / 100);
+      return sum + (itemAfterDiscount - basePrice);
+    },
     0
   );
-  const total = subtotal + gstAmount;
+  
+  const total = afterDiscount;
 
   async function createQuote() {
     setQuoteError("");
@@ -106,7 +133,10 @@ export default function BookingActions({
         bookingId: booking.id,
         lineItems,
         convenienceFee,
+        discountType: discountType || null,
+        discountValue,
         subtotal,
+        discountAmount,
         gstAmount,
         total,
       }),
@@ -256,46 +286,64 @@ export default function BookingActions({
             {/* Line items */}
             <div className="space-y-3">
               {lineItems.map((item, i) => (
-                <div key={i} className="grid grid-cols-12 gap-2 items-center">
-                  <input
-                    className="col-span-4 border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    placeholder="Vaccine name"
-                    value={item.vaccine}
-                    onChange={(e) => updateLineItem(i, "vaccine", e.target.value)}
-                  />
-                  <input
-                    className="col-span-2 border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    type="number"
-                    min={1}
-                    placeholder="Qty"
-                    value={item.qty}
-                    onChange={(e) => updateLineItem(i, "qty", parseInt(e.target.value, 10) || 1)}
-                  />
-                  <input
-                    className="col-span-3 border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    type="number"
-                    min={0}
-                    placeholder="Unit price ₹"
-                    value={item.unitPrice || ""}
-                    onChange={(e) => updateLineItem(i, "unitPrice", parseFloat(e.target.value) || 0)}
-                  />
-                  <select
-                    className="col-span-2 border border-gray-300 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
-                    value={item.gstPct}
-                    onChange={(e) => updateLineItem(i, "gstPct", parseFloat(e.target.value))}
-                  >
-                    <option value={0}>0% GST</option>
-                    <option value={5}>5% GST</option>
-                    <option value={12}>12% GST</option>
-                    <option value={18}>18% GST</option>
-                  </select>
-                  <button
-                    onClick={() => removeLineItem(i)}
-                    className="col-span-1 text-red-400 hover:text-red-600 text-lg font-bold"
-                    disabled={lineItems.length === 1}
-                  >
-                    ×
-                  </button>
+                <div key={i} className="space-y-2">
+                  <div className="grid grid-cols-12 gap-2 items-center">
+                    <input
+                      className="col-span-3 border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      placeholder="Vaccine name"
+                      value={item.vaccine}
+                      onChange={(e) => updateLineItem(i, "vaccine", e.target.value)}
+                    />
+                    <input
+                      className="col-span-1 border border-gray-300 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      type="number"
+                      min={1}
+                      placeholder="Qty"
+                      value={item.qty}
+                      onChange={(e) => updateLineItem(i, "qty", parseInt(e.target.value, 10) || 1)}
+                    />
+                    <input
+                      className="col-span-2 border border-gray-300 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      type="number"
+                      min={0}
+                      placeholder="Unit price ₹"
+                      value={item.unitPrice || ""}
+                      onChange={(e) => updateLineItem(i, "unitPrice", parseFloat(e.target.value) || 0)}
+                    />
+                    <select
+                      className="col-span-2 border border-gray-300 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
+                      value={item.gstPct}
+                      onChange={(e) => updateLineItem(i, "gstPct", parseFloat(e.target.value))}
+                    >
+                      <option value={0}>0%</option>
+                      <option value={5}>5%</option>
+                      <option value={12}>12%</option>
+                      <option value={18}>18%</option>
+                    </select>
+                    <button
+                      onClick={() => removeLineItem(i)}
+                      className="col-span-1 text-red-400 hover:text-red-600 text-lg font-bold"
+                      disabled={lineItems.length === 1}
+                    >
+                      ×
+                    </button>
+                  </div>
+                  {/* Batch & Expiry row */}
+                  <div className="grid grid-cols-12 gap-2 items-center ml-1">
+                    <input
+                      className="col-span-3 col-start-2 border border-gray-300 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      placeholder="Batch No."
+                      value={item.batch || ""}
+                      onChange={(e) => updateLineItem(i, "batch", e.target.value)}
+                    />
+                    <input
+                      className="col-span-2 border border-gray-300 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      type="date"
+                      placeholder="Expiry"
+                      value={item.expiry || ""}
+                      onChange={(e) => updateLineItem(i, "expiry", e.target.value)}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -306,6 +354,32 @@ export default function BookingActions({
             >
               + Add line item
             </button>
+
+            {/* Discount Section */}
+            <div className="border-t border-gray-200 pt-4 mt-4">
+              <h4 className="font-medium text-gray-900 text-xs mb-3">Discount</h4>
+              <div className="flex items-center gap-2 mb-3">
+                <select
+                  value={discountType}
+                  onChange={(e) => setDiscountType(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
+                >
+                  <option value="">No Discount</option>
+                  <option value="percentage">Percentage (%)</option>
+                  <option value="flat">Flat (₹)</option>
+                </select>
+                {discountType && (
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder={discountType === "percentage" ? "%" : "₹"}
+                    value={discountValue || ""}
+                    onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
+                    className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  />
+                )}
+              </div>
+            </div>
 
             <div className="flex items-center gap-3">
               <label className="text-xs font-medium text-gray-700">Convenience fee ₹</label>
@@ -324,8 +398,14 @@ export default function BookingActions({
                 <span>Subtotal</span>
                 <span>₹{subtotal.toFixed(2)}</span>
               </div>
+              {discountAmount > 0 && (
+                <div className="flex justify-between text-gray-600">
+                  <span>Discount ({discountType === "percentage" ? `${discountValue}%` : "Flat"})</span>
+                  <span>-₹{discountAmount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-gray-600">
-                <span>GST</span>
+                <span>GST (Inclusive)</span>
                 <span>₹{gstAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between font-bold text-gray-900 border-t border-gray-100 pt-1">
