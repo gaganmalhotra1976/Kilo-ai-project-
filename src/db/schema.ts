@@ -35,6 +35,7 @@ export const bookings = sqliteTable("bookings", {
   status: text("status").notNull().default("pending"), // pending | quoted | confirmed | completed | cancelled
   paymentStatus: text("payment_status").notNull().default("unpaid"), // unpaid | paid | partial
   adminNotes: text("admin_notes"),
+  assignedNurse: text("assigned_nurse"), // Staff member assigned to this booking
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()
   ),
@@ -50,12 +51,14 @@ export const quotes = sqliteTable("quotes", {
   bookingId: integer("booking_id")
     .notNull()
     .references(() => bookings.id),
-  lineItems: text("line_items").notNull(), // JSON: [{vaccine, qty, unitPrice, gstPct, batch, expiry}]
+  lineItems: text("line_items").notNull(), // JSON: [{vaccine, brand, patient, qty, unitPrice, gstPct, batch, expiry}]
   convenienceFee: real("convenience_fee").notNull().default(0),
   discountType: text("discount_type"), // percentage | flat | null
   discountValue: real("discount_value").notNull().default(0),
   subtotal: real("subtotal").notNull(),
   discountAmount: real("discount_amount").notNull().default(0),
+  freeConsultations: integer("free_consultations").notNull().default(0), // Number of free consultations included
+  freeConsultationsValue: real("free_consultations_value").notNull().default(0), // Total value (consultations × 500)
   gstAmount: real("gst_amount").notNull(),
   total: real("total").notNull(),
   validUntil: text("valid_until"), // ISO date
@@ -77,8 +80,17 @@ export const vaccines = sqliteTable("vaccines", {
   dosesRequired: integer("doses_required").notNull().default(1),
   intervalDays: integer("interval_days"), // days between doses
   ageGroup: text("age_group"), // e.g. "0-5 years", "Adults"
+  // Inventory fields
+  mrp: real("mrp"), // Maximum Retail Price in ₹
+  stockQuantity: integer("stock_quantity").notNull().default(0), // Current stock
+  lowStockThreshold: integer("low_stock_threshold").notNull().default(5), // Alert when below this
+  gstRate: real("gst_rate").notNull().default(18), // GST percentage
+  isAvailable: integer("is_available", { mode: "boolean" }).notNull().default(true), // Manual availability toggle
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()
   ),
 });
@@ -314,6 +326,42 @@ export const supportTickets = sqliteTable("support_tickets", {
   priority: text("priority").notNull().default("medium"),
   status: text("status").notNull().default("open"),
   resolvedAt: integer("resolved_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// ── Consultation Vouchers ──────────────────────────────────────────────────────
+export const consultationVouchers = sqliteTable("consultation_vouchers", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  voucherCode: text("voucher_code").notNull().unique(),
+  customerId: integer("customer_id").references(() => customers.id),
+  patientName: text("patient_name").notNull(),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  quoteId: integer("quote_id").references(() => quotes.id),
+  issueDate: integer("issue_date", { mode: "timestamp" }).notNull(),
+  expiryDate: integer("expiry_date", { mode: "timestamp" }).notNull(),
+  status: text("status").notNull().default("active"), // active | redeemed | expired | converted
+  redeemedDate: integer("redeemed_date", { mode: "timestamp" }),
+  redeemedBy: text("redeemed_by"), // Staff who processed redemption
+  conversionType: text("conversion_type"), // consultation | vaccine_discount
+  discountAmountApplied: real("discount_amount_applied"),
+  convertedToBookingId: integer("converted_to_booking_id").references(() => bookings.id),
+  convertedBy: text("converted_by"), // Staff who processed conversion
+  convertedAt: integer("converted_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// ── Scheduled Reports ───────────────────────────────────────────────────────────
+export const scheduledReports = sqliteTable("scheduled_reports", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(), // e.g., "Weekly Sales Report"
+  reportType: text("report_type").notNull(), // bookings | revenue | pipeline | operations | support | customer | vaccine
+  schedule: text("schedule").notNull(), // daily | weekly | monthly
+  recipientEmails: text("recipient_emails").notNull(), // JSON array of email addresses
+  filters: text("filters"), // JSON object with default filters for this report
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  lastSentAt: integer("last_sent_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });

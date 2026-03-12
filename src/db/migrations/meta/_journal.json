@@ -78,6 +78,20 @@
       "when": 1780800000000,
       "tag": "0010_quote_discounts",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1780900000000,
+      "tag": "0011_reports_infrastructure",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1781000000000,
+      "tag": "0012_quotation_system_overhaul",
+      "breakpoints": true
     }
   ]
 }
