@@ -98,6 +98,12 @@ export default async function AdminQuotesPage() {
                         >
                           View/Print
                         </Link>
+                        <Link
+                          href={`/admin/quotes/${q.id}/edit`}
+                          className="text-blue-600 hover:underline text-xs font-medium"
+                        >
+                          Edit
+                        </Link>
                       </div>
                     </td>
                   </tr>

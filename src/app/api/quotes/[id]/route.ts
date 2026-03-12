@@ -7,7 +7,30 @@ import { eq } from "drizzle-orm";
 // Stub function to prevent build errors
 async function triggerQuoteSent(_data: any) { console.log("Webhook stub: triggerQuoteSent"); }
 
-// PATCH /api/quotes/[id] — update quote status (send, approve, reject)
+// GET /api/quotes/[id] — get quote by ID
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const [quote] = await db
+      .select()
+      .from(quotes)
+      .where(eq(quotes.id, parseInt(id, 10)));
+
+    if (!quote) {
+      return NextResponse.json({ error: "Quote not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(quote);
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Failed to fetch quote" }, { status: 500 });
+  }
+}
+
+// PATCH /api/quotes/[id] — update quote (status or full quote edit)
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -15,16 +38,35 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await req.json();
-    const { status } = body;
+    const { status, lineItems, convenienceFee, discountType, discountValue, discountAmount, subtotal, gstAmount, total, validUntil } = body;
 
-    const validStatuses = ["draft", "sent", "approved", "rejected", "expired"];
-    if (!validStatuses.includes(status)) {
-      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    const updateData: Partial<typeof quotes.$inferInsert> = {};
+
+    // If status is provided, update status (existing behavior)
+    if (status !== undefined) {
+      const validStatuses = ["draft", "sent", "approved", "rejected", "expired"];
+      if (!validStatuses.includes(status)) {
+        return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+      }
+      updateData.status = status;
+      if (status === "sent") updateData.sentAt = new Date();
+      if (status === "approved") updateData.approvedAt = new Date();
     }
 
-    const updateData: Partial<typeof quotes.$inferInsert> = { status };
-    if (status === "sent") updateData.sentAt = new Date();
-    if (status === "approved") updateData.approvedAt = new Date();
+    // If lineItems is provided, update quote details (for edit functionality)
+    if (lineItems !== undefined) {
+      updateData.lineItems = JSON.stringify(lineItems);
+      updateData.convenienceFee = convenienceFee ?? 0;
+      updateData.discountType = discountType;
+      updateData.discountValue = discountValue ?? 0;
+      updateData.discountAmount = discountAmount ?? 0;
+      updateData.subtotal = subtotal ?? 0;
+      updateData.gstAmount = gstAmount ?? 0;
+      updateData.total = total ?? 0;
+      if (validUntil !== undefined) {
+        updateData.validUntil = validUntil ? new Date(validUntil) : null as any;
+      }
+    }
 
     const updated = await db
       .update(quotes)
