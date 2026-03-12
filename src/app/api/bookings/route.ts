@@ -3,6 +3,8 @@ import { db } from "@/db";
 import { bookings, customers, pipelines, pipelineStages, pipelineCards, pipelineCardHistory } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { triggerBookingCreated as sendBookingWebhook } from "@/lib/webhooks";
+import { requirePermission, type AuthenticatedRequest } from "@/lib/authMiddleware";
+import { logStaffAction } from "@/lib/adminAuth";
 
 // Helper webhook function (enabled now)
 async function triggerBookingCreated(bookingData: any) {
@@ -100,13 +102,17 @@ async function createSalesPipelineCard(booking: any) {
   }
 }
 
-// GET /api/bookings — list all bookings (admin)
-export async function GET(req: NextRequest) {
+// GET /api/bookings — list all bookings (admin only)
+export async function GET(req: AuthenticatedRequest) {
+  const authResult = await requirePermission(req, "bookings", "read");
+  
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
-
-    let query = db.select().from(bookings).orderBy(desc(bookings.createdAt));
 
     if (status) {
       const results = await db
@@ -117,7 +123,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(results);
     }
 
-    const results = await query;
+    const results = await db
+      .select()
+      .from(bookings)
+      .orderBy(desc(bookings.createdAt));
+    
+    await logStaffAction(authResult.id, "view", "bookings");
     return NextResponse.json(results);
   } catch (err) {
     console.error(err);
@@ -204,5 +215,53 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error(err);
     return NextResponse.json({ error: "Failed to create booking" }, { status: 500 });
+  }
+}
+
+// DELETE /api/bookings — soft delete a booking (admin only)
+export async function DELETE(req: AuthenticatedRequest) {
+  const authResult = await requirePermission(req, "bookings", "delete");
+  
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
+
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    const reason = searchParams.get("reason") || "Cancelled by staff";
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Booking ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const bookingId = parseInt(id, 10);
+    
+    const [updated] = await db
+      .update(bookings)
+      .set({ 
+        status: "cancelled",
+        adminNotes: reason,
+        updatedAt: new Date()
+      })
+      .where(eq(bookings.id, bookingId))
+      .returning();
+
+    if (!updated) {
+      return NextResponse.json(
+        { error: "Booking not found" },
+        { status: 404 }
+      );
+    }
+
+    await logStaffAction(authResult.id, "delete", "bookings", bookingId, { reason });
+
+    return NextResponse.json({ success: true, booking: updated });
+  } catch (err) {
+    console.error(err);
+    return NextResponse.json({ error: "Failed to delete booking" }, { status: 500 });
   }
 }

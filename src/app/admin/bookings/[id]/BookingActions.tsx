@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 type Booking = {
@@ -44,6 +44,11 @@ const quoteStatusColors: Record<string, string> = {
   expired: "bg-orange-100 text-orange-800",
 };
 
+type Settings = {
+  convenienceFee: string;
+  defaultGstRate: string;
+};
+
 export default function BookingActions({
   booking,
   quotes,
@@ -52,6 +57,8 @@ export default function BookingActions({
   quotes: Quote[];
 }) {
   const router = useRouter();
+  const [settings, setSettings] = useState<Settings>({ convenienceFee: "200", defaultGstRate: "12" });
+  const [settingsLoading, setSettingsLoading] = useState(true);
   const [status, setStatus] = useState(booking.status);
   const [adminNotes, setAdminNotes] = useState(booking.adminNotes ?? "");
   const [saving, setSaving] = useState(false);
@@ -59,13 +66,50 @@ export default function BookingActions({
   const [lineItems, setLineItems] = useState<LineItem[]>([
     { vaccine: "", qty: 1, unitPrice: 0, gstPct: 12, batch: "", expiry: "" },
   ]);
-  const [convenienceFee, setConvenienceFee] = useState(
-    booking.bookingType === "family" || booking.numberOfPeople >= 3 ? 0 : 200
-  );
+  const [convenienceFee, setConvenienceFee] = useState(0);
   const [discountType, setDiscountType] = useState<string>("");
   const [discountValue, setDiscountValue] = useState(0);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState("");
+
+  useEffect(() => {
+    async function fetchSettings() {
+      try {
+        const res = await fetch("/api/settings");
+        if (res.ok) {
+          const data = await res.json();
+          const settingsMap: Record<string, string> = {};
+          data.forEach((s: { key: string; value: string }) => {
+            settingsMap[s.key] = s.value;
+          });
+          setSettings({
+            convenienceFee: settingsMap.convenienceFee || "200",
+            defaultGstRate: settingsMap.defaultGstRate || "12",
+          });
+          setConvenienceFee(
+            booking.bookingType === "family" || booking.numberOfPeople >= 3
+              ? 0
+              : parseFloat(settingsMap.convenienceFee || "200")
+          );
+          setLineItems([
+            {
+              vaccine: "",
+              qty: 1,
+              unitPrice: 0,
+              gstPct: parseFloat(settingsMap.defaultGstRate || "12"),
+              batch: "",
+              expiry: "",
+            },
+          ]);
+        }
+      } catch (e) {
+        console.error("Failed to load settings:", e);
+      } finally {
+        setSettingsLoading(false);
+      }
+    }
+    fetchSettings();
+  }, [booking.bookingType, booking.numberOfPeople]);
 
   async function saveBooking() {
     setSaving(true);

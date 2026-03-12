@@ -378,3 +378,29 @@ export const payments = sqliteTable("payments", {
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
+
+// ── Staff / Admin Users ────────────────────────────────────────────────────────
+export const staff = sqliteTable("staff", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  email: text("email").notNull().unique(),
+  password: text("password").notNull(), // Hashed bcrypt
+  name: text("name").notNull(),
+  role: text("role").notNull().default("sales"), // admin | manager | sales | operations | support
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  lastLoginAt: integer("last_login_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// ── Staff Audit Log ────────────────────────────────────────────────────────────
+export const staffAuditLog = sqliteTable("staff_audit_log", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  staffId: integer("staff_id").notNull().references(() => staff.id),
+  action: text("action").notNull(), // login | logout | create | update | delete | view
+  resource: text("resource"), // bookings | customers | quotes | etc.
+  resourceId: integer("resource_id"), // ID of affected record
+  details: text("details"), // JSON with additional details
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
