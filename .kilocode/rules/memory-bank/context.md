@@ -1,10 +1,28 @@
-# Active Context: Next.js Starter Template
+# Active Context: The Vaccine Panda CRM
 
 ## Current State
 
-**App Status**: ✅ Full Vaccine Panda app built and deployed
+**App Status**: ✅ Full Vaccine Panda app built with core CRM features
 
-The Vaccine Panda home vaccination platform is fully built. The backend admin panel serves as the CRM (no separate CRM). SQLite + Drizzle ORM for data persistence.
+The Vaccine Panda home vaccination platform is a functional CRM with booking management, quotes, pipelines, and reports. Admin panel is publicly accessible (security issue - needs authentication). SQLite + Drizzle ORM for data persistence.
+
+## Recently Completed
+
+- [x] **Comprehensive Application Audit (March 2026)**:
+  - Generated detailed audit report: `vaccine-panda-audit-2026-03-12.md`
+  - Frontend: 45+ pages built, good mobile responsiveness, 5 React warnings
+  - Backend: 50+ API endpoints, CRUD mostly complete
+  - Database: 20 tables covering core CRM
+  - Security: CRITICAL - No admin authentication, no RBAC
+  - Enterprise gaps: 12+ features missing
+  - Estimated completion: 65% core CRM, 30% enterprise
+
+- [x] **Quote Edit Functionality**:
+  - Added Edit button to quotes list (`/admin/quotes`)
+  - Created `/admin/quotes/[id]/edit` page with full editing
+  - Added GET endpoint to `/api/quotes/[id]`
+  - Expanded PATCH to support full quote updates (line items, discounts, validity)
+  - Fixed type error in validUntil handling
 
 ## Recently Completed
 
@@ -158,4 +176,5 @@ export async function GET() {
 
 | Date | Changes |
 |------|---------|
+| Mar 2026 | Comprehensive audit + quote edit feature |
 | Initial | Template created with base setup |
