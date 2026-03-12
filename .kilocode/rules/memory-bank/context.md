@@ -8,6 +8,21 @@ The Vaccine Panda home vaccination platform is fully built. The backend admin pa
 
 ## Recently Completed
 
+- [x] **Reports module + Consultation Vouchers + Free Consultations**:
+  - Added Reports page at `/admin/reports` with 6 tabs: Overview, Bookings, Revenue, Sales Pipeline, Operations, Support
+  - Added Reports nav item to admin sidebar
+  - Added 8 new API routes: `/api/reports/overview`, `/api/reports/bookings`, `/api/reports/revenue`, `/api/reports/pipeline`, `/api/reports/operations`, `/api/reports/support`, `/api/reports/customers`, `/api/reports/vaccines`
+  - Added consultationVouchers table (tracks free consultation vouchers)
+  - Added scheduledReports table (for scheduled report emails)
+  - Added vaccines inventory fields: mrp, stockQuantity, lowStockThreshold, gstRate, isAvailable, updatedAt
+  - Added assignedNurse field to bookings
+  - Added freeConsultations and freeConsultationsValue to quotes
+  - Added free consultations auto-calculation logic in `lib/freeConsultations.ts`
+  - Added `recharts` dependency for charts visualization
+  - Fixed TypeScript errors in API routes (added isNotNull, isNull imports, fixed sql type casts)
+  - Fixed incomplete SupportReport component in admin page (added getStatusColor function)
+  - `bun typecheck` ✅ `bun lint` ✅ (warnings only)
+
 - [x] **CMS Features — Hero Carousel, YouTube Section, Promo Popup, Vaccine Categories**:
   - Added 5 new DB tables: `banners`, `youtube_videos`, `promo_popup`, `vaccine_categories`, `vaccine_category_items` (migration `0004_cms_tables.sql`)
   - Created API routes: `/api/banners`, `/api/youtube-videos`, `/api/promo-popup`, `/api/vaccine-categories`, `/api/vaccine-category-items` (all with CRUD)
