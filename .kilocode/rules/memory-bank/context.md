@@ -17,6 +17,17 @@ The Vaccine Panda home vaccination platform is a functional CRM with booking man
   - Enterprise gaps: 12+ features missing
   - Estimated completion: 65% core CRM, 30% enterprise
 
+- [x] **Critical Security Fixes**:
+  - Added staff table with role-based access (admin, manager, sales, operations, support)
+  - Created admin auth middleware (`src/lib/authMiddleware.ts`) with permission system
+  - Added authentication to protected API endpoints: /api/customers, /api/bookings, /api/settings, /api/admin/*
+  - Fixed SQL injection in customer search (sanitizeInput function)
+  - Added missing CRUD: DELETE bookings (soft delete), CREATE customers, DELETE customers (soft delete)
+  - Moved hardcoded values to Settings table (convenienceFee, defaultGstRate, gstin, companyEmail)
+  - Created admin login page at /admin/login
+  - Added audit logging for staff actions (src/lib/adminAuth.ts logStaffAction)
+  - Default admin: admin@vaccinepanda.com / admin123
+
 - [x] **Quote Edit Functionality**:
   - Added Edit button to quotes list (`/admin/quotes`)
   - Created `/admin/quotes/[id]/edit` page with full editing
