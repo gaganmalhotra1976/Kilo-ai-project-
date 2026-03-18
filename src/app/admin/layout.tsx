@@ -13,6 +13,7 @@ const navItems = [
   { href: "/admin/reports", label: "Reports", icon: "📈" },
   { href: "/admin/bookings", label: "Bookings", icon: "📋" },
   { href: "/admin/quotes", label: "Quotes", icon: "💰" },
+  { href: "/admin/invoices", label: "Invoices", icon: "🧾" },
   { href: "/admin/customers", label: "Customers", icon: "👥" },
   { href: "/admin/vaccines", label: "Vaccines", icon: "💉" },
   { href: "/admin/banners", label: "Hero Banners", icon: "🖼️" },
@@ -22,6 +23,7 @@ const navItems = [
   { href: "/admin/blog-posts", label: "Blog Posts", icon: "✍️" },
   { href: "/admin/pipelines", label: "Pipelines", icon: "🗃️" },
   { href: "/admin/webhooks", label: "Webhooks", icon: "🔗" },
+  { href: "/admin/settings/audit-log", label: "Audit Log", icon: "📝" },
 ];
 
 export default function AdminLayout({

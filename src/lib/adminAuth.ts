@@ -164,17 +164,19 @@ export async function verifyStaffSession(token: string | null): Promise<StaffUse
 export async function logStaffAction(
   staffId: number,
   action: string,
-  resource?: string,
-  resourceId?: number,
+  module?: string,
+  recordId?: number,
   details?: Record<string, any>
 ): Promise<void> {
   try {
     await db.insert(staffAuditLog).values({
       staffId,
+      staffName: null,
       action,
-      resource,
-      resourceId,
-      details: details ? JSON.stringify(details) : null,
+      module,
+      recordId,
+      oldValue: null,
+      newValue: details ? JSON.stringify(details) : null,
     });
   } catch (error) {
     console.error("Failed to log staff action:", error);

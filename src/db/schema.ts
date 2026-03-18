@@ -396,11 +396,55 @@ export const staff = sqliteTable("staff", {
 export const staffAuditLog = sqliteTable("staff_audit_log", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   staffId: integer("staff_id").notNull().references(() => staff.id),
+  staffName: text("staff_name"),
   action: text("action").notNull(), // login | logout | create | update | delete | view
-  resource: text("resource"), // bookings | customers | quotes | etc.
-  resourceId: integer("resource_id"), // ID of affected record
-  details: text("details"), // JSON with additional details
+  module: text("module"), // bookings | customers | quotes | pipelines | settings | etc.
+  recordId: integer("record_id"), // ID of affected record
+  oldValue: text("old_value"), // JSON
+  newValue: text("new_value"), // JSON
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// ── Customer Communications ─────────────────────────────────────────────────────
+export const customerCommunications = sqliteTable("customer_communications", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  customerId: integer("customer_id").notNull().references(() => customers.id),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  staffId: integer("staff_id").references(() => staff.id),
+  type: text("type").notNull(), // WhatsApp | Call | Email | In-Person
+  direction: text("direction").notNull(), // Inbound | Outbound
+  content: text("content").notNull(), // Notes on what was discussed
+  metadata: text("metadata"), // JSON for additional data like message ID, call duration
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// ── Invoices ──────────────────────────────────────────────────────────────────
+export const invoices = sqliteTable("invoices", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  invoiceNumber: text("invoice_number").notNull().unique(),
+  bookingId: integer("booking_id").notNull().references(() => bookings.id),
+  customerId: integer("customer_id").notNull().references(() => customers.id),
+  // Invoice details
+  subtotal: real("subtotal").notNull(),
+  discountType: text("discount_type"), // percentage | flat
+  discountValue: real("discount_value"),
+  discountAmount: real("discount_amount"),
+  cgstRate: real("cgst_rate"),
+  cgstAmount: real("cgst_amount"),
+  sgstRate: real("sgst_rate"),
+  sgstAmount: real("sgst_amount"),
+  igstRate: real("igst_rate"),
+  igstAmount: real("igst_amount"),
+  totalTax: real("total_tax").notNull(),
+  total: real("total").notNull(),
+  // Line items with HSN
+  lineItems: text("line_items").notNull(), // JSON: [{vaccine, hsnCode, qty, unitPrice, taxableAmount, cgst, sgst, igst, total}]
+  // Status
+  status: text("status").notNull().default("draft"), // draft | generated | cancelled
+  paidAt: integer("paid_at", { mode: "timestamp" }),
+  generatedAt: integer("generated_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
