@@ -9,7 +9,7 @@ export default async function DebugPage() {
   let error = null;
 
   try {
-    const res = await fetch("/api/debug/database");
+    const res = await fetch("/api/debug/database/");
     if (res.ok) {
       debugData = await res.json();
     } else {
