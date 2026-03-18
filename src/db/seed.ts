@@ -3,7 +3,7 @@ import { staff, settings, staffAuditLog } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { hashPassword } from "@/lib/adminAuth";
 
-export default async function seedStaff() {
+export async function seedStaff() {
   console.log("Seeding staff and settings...");
 
   // Check if admin already exists
