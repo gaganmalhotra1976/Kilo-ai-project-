@@ -75,7 +75,15 @@ export default function BookingActions({
   useEffect(() => {
     async function fetchSettings() {
       try {
-        const res = await fetch("/api/settings");
+        const adminToken = localStorage.getItem("admin_token");
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+        if (adminToken) {
+          headers["x-admin-token"] = adminToken;
+        }
+        
+        const res = await fetch("/api/settings", { headers });
         if (res.ok) {
           const data = await res.json();
           const settingsMap: Record<string, string> = {};
@@ -170,9 +178,18 @@ export default function BookingActions({
       return;
     }
     setQuoteLoading(true);
+    
+    const adminToken = localStorage.getItem("admin_token");
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (adminToken) {
+      headers["x-admin-token"] = adminToken;
+    }
+    
     const res = await fetch("/api/quotes", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({
         bookingId: booking.id,
         lineItems,
@@ -197,9 +214,17 @@ export default function BookingActions({
   }
 
   async function updateQuoteStatus(quoteId: number, newStatus: string) {
+    const adminToken = localStorage.getItem("admin_token");
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (adminToken) {
+      headers["x-admin-token"] = adminToken;
+    }
+    
     await fetch(`/api/quotes/${quoteId}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ status: newStatus }),
     });
     router.refresh();

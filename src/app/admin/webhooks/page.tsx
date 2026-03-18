@@ -32,13 +32,29 @@ export default function WebhooksPage() {
   async function fetchData() {
     setLoading(true);
     try {
+      const adminToken = localStorage.getItem("admin_token");
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (adminToken) {
+        headers["x-admin-token"] = adminToken;
+      }
+      
       const [logsRes, settingsRes] = await Promise.all([
-        fetch("/api/webhook-logs"),
-        fetch("/api/settings")
+        fetch("/api/webhook-logs", { headers }),
+        fetch("/api/settings", { headers })
       ]);
       
       const logsData = await logsRes.json();
       const settingsData = await settingsRes.json();
+      
+      if (!logsRes.ok || !settingsRes.ok) {
+        console.error("Failed to fetch data:", logsRes.status, settingsRes.status);
+        setWebhookLogs([]);
+        setSettings([]);
+        setLoading(false);
+        return;
+      }
       
       setWebhookLogs(logsData);
       setSettings(settingsData);

@@ -2,15 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { webhookLogs } from "@/db/schema";
 import { desc, eq, and } from "drizzle-orm";
+import { requirePermission, type AuthenticatedRequest } from "@/lib/authMiddleware";
 
-// GET /api/webhook-logs — list all webhook logs
-export async function GET(req: NextRequest) {
+// GET /api/webhook-logs — list all webhook logs (requires auth)
+export async function GET(req: AuthenticatedRequest) {
+  const authResult = await requirePermission(req, "webhooks", "read");
+  
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
+
   try {
     const { searchParams } = new URL(req.url);
     const event = searchParams.get("event");
     const success = searchParams.get("success");
-
-    let query = db.select().from(webhookLogs).orderBy(desc(webhookLogs.createdAt));
 
     if (event || success) {
       const conditions = [];
@@ -27,11 +32,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(results);
     }
 
-    const results = await query;
+    const results = await db
+      .select()
+      .from(webhookLogs)
+      .orderBy(desc(webhookLogs.createdAt));
     return NextResponse.json(results);
   } catch (err) {
     console.error(err);
-    // Return empty array if table doesn't exist yet
     return NextResponse.json([]);
   }
 }
