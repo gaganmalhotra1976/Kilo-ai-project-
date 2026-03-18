@@ -30,6 +30,11 @@ export default function AdminLoginPage() {
         return;
       }
 
+      // Store token in localStorage for session persistence
+      localStorage.setItem("admin_token", data.token);
+      localStorage.setItem("admin_staffId", data.staff.id.toString());
+      localStorage.setItem("admin_name", data.staff.name);
+      
       router.push("/admin");
     } catch (err) {
       setError("An error occurred. Please try again.");
