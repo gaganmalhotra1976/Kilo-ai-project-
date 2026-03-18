@@ -458,3 +458,35 @@ export const invoices = sqliteTable("invoices", {
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
+
+// ── Document Storage ─────────────────────────────────────────────────────────
+export const documentStorage = sqliteTable("document_storage", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  customerId: integer("customer_id").references(() => customers.id),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  documentType: text("document_type").notNull(), // vaccination_certificate | invoice | prescription | id_proof
+  fileName: text("file_name").notNull(),
+  fileUrl: text("file_url").notNull(),
+  fileSize: integer("file_size"),
+  mimeType: text("mime_type"),
+  metadata: text("metadata"), // JSON for additional data
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// ── Payment Transactions ──────────────────────────────────────────────────
+export const paymentTransactions = sqliteTable("payment_transactions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  amount: real("amount").notNull(),
+  currency: text("currency").notNull().default("INR"),
+  provider: text("provider").notNull(), // phonepe | razorpay | cash | upi
+  providerTransactionId: text("provider_transaction_id"),
+  ourTransactionId: text("our_transaction_id"),
+  status: text("status").notNull(), // pending | initiated | captured | failed | cancelled | refunded
+  paymentLink: text("payment_link"),
+  paymentLinkId: text("payment_link_id"),
+  callbackData: text("callback_data"), // JSON from provider webhook
+  failureReason: text("failure_reason"),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});

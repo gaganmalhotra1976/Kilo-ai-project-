@@ -5,12 +5,17 @@ import { eq, and } from "drizzle-orm";
 export type WebhookEvent = 
   | "booking.created" 
   | "booking.updated" 
-  | "booking.cancelled" 
-  | "quote.sent" 
+  | "booking.cancelled"
+  | "booking.completed"
+  | "quote.sent"
+  | "quote.approved"
   | "support.ticket.created" 
   | "support.ticket.resolved" 
   | "pipeline.stage.changed"
-  | "payment.received";
+  | "payment.received"
+  | "payment.failed"
+  | "whatsapp.message.received"
+  | "whatsapp.message.sent";
 
 export interface WebhookPayload {
   event: WebhookEvent;
@@ -211,4 +216,24 @@ export async function triggerPipelineStageChanged(cardData: any, triggeredBy: st
 
 export async function triggerPaymentReceived(paymentData: any, triggeredBy: string | null = null) {
   await triggerWebhook("payment.received", paymentData, triggeredBy);
+}
+
+export async function triggerPaymentFailed(paymentData: any, triggeredBy: string | null = null) {
+  await triggerWebhook("payment.failed", paymentData, triggeredBy);
+}
+
+export async function triggerBookingCompleted(bookingData: any, triggeredBy: string | null = null) {
+  await triggerWebhook("booking.completed", bookingData, triggeredBy);
+}
+
+export async function triggerQuoteApproved(quoteData: any, triggeredBy: string | null = null) {
+  await triggerWebhook("quote.approved", quoteData, triggeredBy);
+}
+
+export async function triggerWhatsAppMessageReceived(messageData: any, triggeredBy: string | null = null) {
+  await triggerWebhook("whatsapp.message.received", messageData, triggeredBy);
+}
+
+export async function triggerWhatsAppMessageSent(messageData: any, triggeredBy: string | null = null) {
+  await triggerWebhook("whatsapp.message.sent", messageData, triggeredBy);
 }
