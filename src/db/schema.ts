@@ -1,5 +1,15 @@
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 
+// ── Customer OTP ───────────────────────────────────────────────────────────────
+export const customerOtps = sqliteTable("customer_otps", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  phone: text("phone").notNull(),
+  otp: text("otp").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  usedAt: integer("used_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
 // ── Customers ──────────────────────────────────────────────────────────────
 export const customers = sqliteTable("customers", {
   id: integer("id").primaryKey({ autoIncrement: true }),
