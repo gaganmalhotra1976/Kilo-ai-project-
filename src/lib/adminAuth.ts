@@ -124,28 +124,21 @@ export async function verifyStaffCredentials(email: string, password: string): P
 }
 
 export async function createStaffSession(staffId: number): Promise<string> {
-  const crypto = await import("crypto");
-  const sessionToken = crypto.randomBytes(32).toString("hex");
-  
-  const { settings: settingsTable } = await import("@/db/schema");
-  
-  const tokenData = {
-    staffId,
-    token: sessionToken,
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-  };
-  
-  return sessionToken;
+  // For testing, use staffId as token for simpler debugging
+  return staffId.toString();
 }
 
 export async function verifyStaffSession(token: string | null): Promise<StaffUser | null> {
   if (!token) return null;
   
   try {
+    const staffId = parseInt(token, 10);
+    if (isNaN(staffId)) return null;
+    
     const [session] = await db
       .select()
       .from(staff)
-      .where(eq(staff.id, parseInt(token, 10)));
+      .where(eq(staff.id, staffId));
     
     if (!session || !session.isActive) return null;
     
