@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [step, setStep] = useState("send"); // send | verify | reset
   const [identifier, setIdentifier] = useState(""); // email or phone
   const [otp, setOtp] = useState("");
