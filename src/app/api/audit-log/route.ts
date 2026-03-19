@@ -17,7 +17,7 @@ export async function GET(req: AuthenticatedRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const staffId = searchParams.get("staffId");
-    const module = searchParams.get("module");
+    const moduleParam = searchParams.get("module");
     const action = searchParams.get("action");
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
@@ -29,8 +29,8 @@ export async function GET(req: AuthenticatedRequest) {
     if (staffId) {
       conditions.push(eq(staffAuditLog.staffId, parseInt(staffId)));
     }
-    if (module) {
-      conditions.push(eq(staffAuditLog.module, module));
+    if (moduleParam) {
+      conditions.push(eq(staffAuditLog.module, moduleParam));
     }
     if (action) {
       conditions.push(eq(staffAuditLog.action, action));

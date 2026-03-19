@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function PortalLoginPage() {
   const router = useRouter();
@@ -185,13 +186,13 @@ export default function PortalLoginPage() {
         )}
 
         <div className="mt-6 text-center">
-          <a href="/forgot-password" className="text-sm text-emerald-600 hover:underline">
+          <Link href="/forgot-password" className="text-sm text-emerald-600 hover:underline">
             Forgot password?
-          </a>
+          </Link>
           <p className="mt-2 text-sm text-gray-500">
-            <a href="/" className="hover:underline">
+            <Link href="/" className="hover:underline">
               ← Back to Website
-            </a>
+            </Link>
           </p>
         </div>
       </div>

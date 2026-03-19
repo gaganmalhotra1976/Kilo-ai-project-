@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 export default function PortalLoginLayout({
   children,
@@ -10,10 +10,10 @@ export default function PortalLoginLayout({
     <div className="min-h-screen bg-gray-50">
       <header className="bg-emerald-600 text-white py-4 px-6 shadow-lg">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <a href="/portal/login" className="flex items-center gap-2">
+          <Link href="/portal/login" className="flex items-center gap-2">
             <span className="text-2xl">🐼</span>
             <span className="font-bold text-lg">The Vaccine Panda</span>
-          </a>
+          </Link>
           <span className="text-sm bg-emerald-700 px-3 py-1 rounded-full">
             Customer Portal
           </span>

@@ -78,6 +78,11 @@ The Vaccine Panda home vaccination platform is a functional CRM with booking man
   - `/api/auth/register` updated to accept `email` field; phone is now optional (either phone or email required)
   - Google OAuth requires `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` env vars to be set in deployment
 
+- [x] **Admin and Customer Portal Fixes**:
+  - Fixed error in `/api/audit-log/route.ts` - replaced reserved keyword `module` variable with `moduleParam`
+  - Fixed warnings in `src/app/portal/layout.tsx` and `src/app/portal/login/page.tsx` - replaced <a> tags with <Link> tags
+  - Verified fixes with `bun typecheck` and `bun lint` commands
+
 - [x] **Session persistence fix**: Login/register pages now check `localStorage.getItem("authToken")` on mount — if a session exists, they immediately redirect to `/profile` instead of showing the form. Shows a spinner while checking to avoid flash. `Header.tsx` now reads auth state from localStorage and shows the user's first name + "Logout" button when logged in, or "Login" when not. Logout clears all 3 localStorage keys and redirects to home. Also listens to `storage` events for cross-tab sync. Committed as `bfc4100`.
 
 - [x] **Family member selection in booking form**: When a logged-in user visits `/book`, the form now fetches their family members and shows a "Who is this booking for?" section with checkboxes (Myself + each family member). Selected patient names are stored in a new `patientNames` JSON column on the `bookings` table. The admin booking detail page now shows a "Patients" row listing the selected names. DB migration `0003_patient_names.sql` adds the column. Non-logged-in users still see the original "Number of People" field. Committed as `9b48fca`.
