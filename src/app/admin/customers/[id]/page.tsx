@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { FamilyMembersList } from "./FamilyMembersList";
+import { CreateCustomerLogin } from "./CreateCustomerLogin";
 
 export const metadata: Metadata = { title: "Customer Details" };
 export const dynamic = "force-dynamic";
@@ -108,6 +109,15 @@ export default async function CustomerDetailPage({ params }: PageProps) {
           />
         </div>
       </div>
+
+      {/* Create Customer Login */}
+      <CreateCustomerLogin
+        customerId={customerId}
+        customerName={customer.name}
+        customerPhone={customer.phone}
+        customerEmail={customer.email}
+        onCustomerUpdated={() => {}}
+      />
     </div>
   );
 }

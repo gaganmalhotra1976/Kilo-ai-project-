@@ -4,6 +4,7 @@ import { customers } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requirePermission, type AuthenticatedRequest } from "@/lib/authMiddleware";
 import { logStaffAction } from "@/lib/adminAuth";
+import bcrypt from "bcryptjs";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -73,17 +74,23 @@ export async function PATCH(req: AuthenticatedRequest, { params }: RouteParams) 
     }
 
     const body = await req.json();
-    const { name, email, address, city, notes } = body;
+    const { name, email, address, city, notes, password } = body;
+
+    const updateData: any = {
+      name: name ?? undefined,
+      email: email ?? undefined,
+      address: address ?? undefined,
+      city: city ?? undefined,
+      notes: notes ?? undefined,
+    };
+
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 12);
+    }
 
     const [updated] = await db
       .update(customers)
-      .set({
-        name: name ?? undefined,
-        email: email ?? undefined,
-        address: address ?? undefined,
-        city: city ?? undefined,
-        notes: notes ?? undefined,
-      })
+      .set(updateData)
       .where(eq(customers.id, customerId))
       .returning();
 

@@ -185,9 +185,14 @@ export default function PortalLoginPage() {
         )}
 
         <div className="mt-6 text-center">
-          <a href="/" className="text-sm text-gray-500 hover:underline">
-            ← Back to Website
+          <a href="/forgot-password" className="text-sm text-emerald-600 hover:underline">
+            Forgot password?
           </a>
+          <p className="mt-2 text-sm text-gray-500">
+            <a href="/" className="hover:underline">
+              ← Back to Website
+            </a>
+          </p>
         </div>
       </div>
     </div>

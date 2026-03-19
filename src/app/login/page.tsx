@@ -190,6 +190,12 @@ function LoginForm() {
               Create one
             </a>
           </p>
+          <p className="text-gray-600 text-sm mt-2">
+            Forgot your password?{" "}
+            <a href="/forgot-password" className="text-emerald-600 hover:underline font-medium">
+              Reset it
+            </a>
+          </p>
         </div>
       </div>
     </div>
