@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     }
 
     // Look up customer by email OR phone
-    const customer = await db
+    const customerList = await db
       .select()
       .from(customers)
       .where(
@@ -30,8 +30,9 @@ export async function POST(request: Request) {
           eq(customers.phone, identifier),
           eq(customers.email, identifier)
         )
-      )
-      .get();
+      );
+
+    const customer = customerList[0];
 
     if (!customer) {
       return NextResponse.json(
@@ -40,8 +41,16 @@ export async function POST(request: Request) {
       );
     }
 
+    // If customer has no password set, they can't login with password
+    if (!customer.password) {
+      return NextResponse.json(
+        { error: "This account doesn't have a password. Please use OTP login or create a password." },
+        { status: 401 }
+      );
+    }
+
     // Verify password with bcrypt
-    const isValidPassword = await bcrypt.compare(password, customer.password || "");
+    const isValidPassword = await bcrypt.compare(password, customer.password);
     
     if (!isValidPassword) {
       return NextResponse.json(
