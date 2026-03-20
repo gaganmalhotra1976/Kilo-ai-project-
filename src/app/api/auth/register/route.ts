@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { customers } from "@/db/schema";
-import { eq, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { hashPassword, generateToken } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -18,17 +18,27 @@ export async function POST(request: Request) {
     }
 
     // Check if customer already exists by phone or email
-    const conditions = [];
-    if (phone) conditions.push(eq(customers.phone, phone));
-    if (email) conditions.push(eq(customers.email, email));
-
-    const existingCustomer = conditions.length > 0
-      ? await db
-          .select()
-          .from(customers)
-          .where(conditions.length === 1 ? conditions[0] : or(...conditions))
-          .get()
-      : null;
+    let existingCustomer = null;
+    
+    if (phone) {
+      const customersWithPhone = await db
+        .select()
+        .from(customers)
+        .where(eq(customers.phone, phone));
+      if (customersWithPhone.length > 0) {
+        existingCustomer = customersWithPhone[0];
+      }
+    }
+    
+    if (!existingCustomer && email) {
+      const customersWithEmail = await db
+        .select()
+        .from(customers)
+        .where(eq(customers.email, email));
+      if (customersWithEmail.length > 0) {
+        existingCustomer = customersWithEmail[0];
+      }
+    }
 
     if (existingCustomer) {
       // If customer exists but has no password, allow them to set one

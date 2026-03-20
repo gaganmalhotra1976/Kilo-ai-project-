@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { customers } from "@/db/schema";
-import { eq, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -22,17 +22,27 @@ export async function POST(request: Request) {
     }
 
     // Look up customer by email OR phone
-    const customerList = await db
+    let customer = null;
+    
+    // Try to find by phone first
+    const customersByPhone = await db
       .select()
       .from(customers)
-      .where(
-        or(
-          eq(customers.phone, identifier),
-          eq(customers.email, identifier)
-        )
-      );
-
-    const customer = customerList[0];
+      .where(eq(customers.phone, identifier));
+    
+    if (customersByPhone.length > 0) {
+      customer = customersByPhone[0];
+    } else {
+      // Try to find by email
+      const customersByEmail = await db
+        .select()
+        .from(customers)
+        .where(eq(customers.email, identifier));
+      
+      if (customersByEmail.length > 0) {
+        customer = customersByEmail[0];
+      }
+    }
 
     if (!customer) {
       return NextResponse.json(
