@@ -24,6 +24,32 @@ interface Booking {
   updatedAt: string;
 }
 
+interface LineItem {
+  vaccine: string;
+  brand: string;
+  patient: string;
+  qty: number;
+  unitPrice: number;
+  gstPct: number;
+  batch: string;
+  expiry: string;
+}
+
+interface Quote {
+  id: number;
+  lineItems: string;
+  subtotal: number;
+  convenienceFee: number;
+  discountType: string | null;
+  discountValue: number;
+  discountAmount: number;
+  freeConsultations: number;
+  freeConsultationsValue: number;
+  gstAmount: number;
+  total: number;
+  status: string;
+}
+
 interface BookingDetailsModalProps {
   booking: Booking | null;
   isOpen: boolean;
@@ -31,6 +57,37 @@ interface BookingDetailsModalProps {
 }
 
 export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetailsModalProps) {
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [loadingQuote, setLoadingQuote] = useState(false);
+
+  useEffect(() => {
+    if (!booking || !isOpen) {
+      setQuote(null);
+      return;
+    }
+
+    const bookingId = booking.id;
+    
+    async function fetchQuote() {
+      setLoadingQuote(true);
+      try {
+        const res = await fetch(`/api/bookings/${bookingId}/quote`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.data) {
+            setQuote(data.data);
+          }
+        }
+      } catch (e) {
+        console.log("Could not fetch quote");
+      } finally {
+        setLoadingQuote(false);
+      }
+    }
+
+    fetchQuote();
+  }, [booking, isOpen]);
+
   if (!isOpen || !booking) return null;
 
   const getVaccineList = () => {
@@ -52,6 +109,16 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
     }
   };
 
+  const getLineItems = (): LineItem[] => {
+    if (!quote) return [];
+    try {
+      const parsed = JSON.parse(quote.lineItems);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed": return "bg-green-100 text-green-800";
@@ -69,6 +136,8 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
       default: return "bg-red-100 text-red-800";
     }
   };
+
+  const lineItems = getLineItems();
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -181,6 +250,110 @@ export function BookingDetailsModal({ booking, isOpen, onClose }: BookingDetails
                   </li>
                 ))}
               </ul>
+            </div>
+
+            {/* Billing Details */}
+            <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-200">
+              <h3 className="font-semibold text-gray-900 mb-3">Billing Details</h3>
+              
+              {loadingQuote ? (
+                <div className="flex items-center justify-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600"></div>
+                </div>
+              ) : quote ? (
+                <div className="space-y-3">
+                  {/* Line Items Table */}
+                  {lineItems.length > 0 && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-emerald-200">
+                            <th className="text-left py-2 text-gray-700">Vaccine</th>
+                            <th className="text-left py-2 text-gray-700">Patient</th>
+                            <th className="text-right py-2 text-gray-700">Qty</th>
+                            <th className="text-right py-2 text-gray-700">Price</th>
+                            <th className="text-right py-2 text-gray-700">GST</th>
+                            <th className="text-right py-2 text-gray-700">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {lineItems.map((item, index) => (
+                            <tr key={index} className="border-b border-emerald-100">
+                              <td className="py-2">
+                                <p className="font-medium">{item.vaccine}</p>
+                                {item.brand && <p className="text-xs text-gray-500">{item.brand}</p>}
+                              </td>
+                              <td className="py-2 text-gray-600">{item.patient}</td>
+                              <td className="py-2 text-right">{item.qty}</td>
+                              <td className="py-2 text-right">₹{item.unitPrice.toLocaleString()}</td>
+                              <td className="py-2 text-right">{item.gstPct}%</td>
+                              <td className="py-2 text-right font-medium">
+                                ₹{(item.qty * item.unitPrice * (1 + item.gstPct / 100)).toLocaleString()}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {/* Bill Summary */}
+                  <div className="bg-white rounded-lg p-4 space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Subtotal</span>
+                      <span className="font-medium">₹{quote.subtotal.toLocaleString()}</span>
+                    </div>
+                    {quote.discountAmount > 0 && (
+                      <div className="flex justify-between text-green-600">
+                        <span>Discount ({quote.discountType === "percentage" ? `${quote.discountValue}%` : "Flat"})</span>
+                        <span>-₹{quote.discountAmount.toLocaleString()}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Convenience Fee</span>
+                      <span className="font-medium">₹{quote.convenienceFee.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">GST</span>
+                      <span className="font-medium">₹{quote.gstAmount.toLocaleString()}</span>
+                    </div>
+                    {quote.freeConsultations > 0 && (
+                      <div className="flex justify-between text-emerald-600">
+                        <span>Free Consultations ({quote.freeConsultations}x)</span>
+                        <span>+₹{quote.freeConsultationsValue.toLocaleString()}</span>
+                      </div>
+                    )}
+                    <div className="border-t border-emerald-200 pt-2 mt-2">
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-gray-900">Total Amount</span>
+                        <span className="font-bold text-lg text-emerald-700">₹{quote.total.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Free Consultations Info */}
+                  {quote.freeConsultations > 0 && (
+                    <div className="bg-emerald-100 rounded-lg p-3 mt-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">🎟️</span>
+                        <div>
+                          <p className="font-medium text-emerald-800">
+                            {quote.freeConsultations} Free Consultation{quote.freeConsultations > 1 ? "s" : ""} Included
+                          </p>
+                          <p className="text-sm text-emerald-700">
+                            Worth ₹{quote.freeConsultationsValue.toLocaleString()} - Check your profile after payment to book
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  <p>No billing information available yet</p>
+                  <p className="text-sm mt-1">A quote will be generated by our team</p>
+                </div>
+              )}
             </div>
 
             {/* Admin Notes */}
