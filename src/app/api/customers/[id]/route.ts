@@ -74,14 +74,16 @@ export async function PATCH(req: AuthenticatedRequest, { params }: RouteParams) 
     }
 
     const body = await req.json();
-    const { name, email, address, city, notes, password } = body;
+    const { name, email, address, city, notes, password, phone, pictureUrl } = body;
 
     const updateData: any = {
       name: name ?? undefined,
+      phone: phone ?? undefined,
       email: email ?? undefined,
       address: address ?? undefined,
       city: city ?? undefined,
       notes: notes ?? undefined,
+      pictureUrl: pictureUrl ?? undefined,
     };
 
     if (password) {

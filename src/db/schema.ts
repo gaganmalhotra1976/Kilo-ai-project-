@@ -20,6 +20,7 @@ export const customers = sqliteTable("customers", {
   address: text("address"),
   city: text("city").notNull().default("Delhi"),
   notes: text("notes"),
+  pictureUrl: text("picture_url"), // Profile picture URL
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()
   ),
@@ -115,6 +116,7 @@ export const familyMembers = sqliteTable("family_members", {
   dateOfBirth: text("date_of_birth"), // ISO date string
   gender: text("gender"), // male | female | other
   vaccineCardUrl: text("vaccine_card_url"), // URL to uploaded vaccine card
+  pictureUrl: text("picture_url"), // Family member picture URL
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()
   ),

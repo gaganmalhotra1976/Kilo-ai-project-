@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ProfilePictureUpload } from "./ProfilePictureUpload";
 
 interface FamilyMember {
   id: number;
@@ -9,6 +10,7 @@ interface FamilyMember {
   dateOfBirth: string | null;
   gender: string | null;
   vaccineCardUrl: string | null;
+  pictureUrl: string | null;
 }
 
 interface CustomerFamilyMembersProps {
@@ -32,6 +34,7 @@ export function CustomerFamilyMembers({
     dateOfBirth: "",
     gender: "",
     vaccineCardUrl: "",
+    pictureUrl: "",
   });
 
   const handleAdd = async () => {
@@ -51,13 +54,14 @@ export function CustomerFamilyMembers({
           dateOfBirth: formData.dateOfBirth || null,
           gender: formData.gender || null,
           vaccineCardUrl: formData.vaccineCardUrl || null,
+          pictureUrl: formData.pictureUrl || null,
         }),
       });
 
       if (response.ok) {
         const newFamilyMember = await response.json();
         setFamilyMembersList([...familyMembersList, newFamilyMember]);
-        setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardUrl: "" });
+        setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardUrl: "", pictureUrl: "" });
         setIsAdding(false);
       } else {
         alert("Failed to add family member");
@@ -86,6 +90,7 @@ export function CustomerFamilyMembers({
           dateOfBirth: formData.dateOfBirth || null,
           gender: formData.gender || null,
           vaccineCardUrl: formData.vaccineCardUrl || null,
+          pictureUrl: formData.pictureUrl || null,
         }),
       });
 
@@ -96,7 +101,7 @@ export function CustomerFamilyMembers({
             fm.id === id ? updatedFamilyMember : fm
           )
         );
-        setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardUrl: "" });
+        setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardUrl: "", pictureUrl: "" });
         setEditingId(null);
       } else {
         alert("Failed to update family member");
@@ -141,13 +146,14 @@ export function CustomerFamilyMembers({
       dateOfBirth: member.dateOfBirth || "",
       gender: member.gender || "",
       vaccineCardUrl: member.vaccineCardUrl || "",
+      pictureUrl: member.pictureUrl || "",
     });
     setEditingId(member.id);
     setIsAdding(false);
   };
 
   const cancelForm = () => {
-    setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardUrl: "" });
+    setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardUrl: "", pictureUrl: "" });
     setIsAdding(false);
     setEditingId(null);
   };
@@ -174,7 +180,15 @@ export function CustomerFamilyMembers({
           className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
         >
           {editingId === member.id ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
+              <div className="flex justify-center mb-4">
+                <ProfilePictureUpload
+                  currentImage={formData.pictureUrl}
+                  onImageChange={(url) => setFormData({ ...formData, pictureUrl: url })}
+                  label="Family Member Photo"
+                  size="md"
+                />
+              </div>
               <input
                 type="text"
                 placeholder="Name *"
@@ -234,29 +248,44 @@ export function CustomerFamilyMembers({
           ) : (
             <div>
               <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-semibold text-gray-900">{member.name}</h3>
-                  <div className="text-sm text-gray-500 space-y-1 mt-2">
-                    {member.dateOfBirth && (
-                      <p>
-                        DOB:{" "}
-                        {new Date(member.dateOfBirth).toLocaleDateString("en-IN")}
-                      </p>
-                    )}
-                    {member.gender && <p>Gender: {member.gender}</p>}
-                    {member.vaccineCardUrl && (
-                      <p>
-                        Vaccine Card:{" "}
-                        <a
-                          href={member.vaccineCardUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-emerald-600 hover:underline"
-                        >
-                          View
-                        </a>
-                      </p>
-                    )}
+                <div className="flex items-start gap-4">
+                  {member.pictureUrl ? (
+                    <img
+                      src={member.pictureUrl}
+                      alt={member.name}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-500 text-xl font-medium">
+                        {member.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{member.name}</h3>
+                    <div className="text-sm text-gray-500 space-y-1 mt-2">
+                      {member.dateOfBirth && (
+                        <p>
+                          DOB:{" "}
+                          {new Date(member.dateOfBirth).toLocaleDateString("en-IN")}
+                        </p>
+                      )}
+                      {member.gender && <p>Gender: {member.gender}</p>}
+                      {member.vaccineCardUrl && (
+                        <p>
+                          Vaccine Card:{" "}
+                          <a
+                            href={member.vaccineCardUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-emerald-600 hover:underline"
+                          >
+                            View
+                          </a>
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -280,8 +309,16 @@ export function CustomerFamilyMembers({
       ))}
 
       {isAdding && (
-        <div className="border border-emerald-300 rounded-lg p-4 bg-emerald-50 space-y-3">
+        <div className="border border-emerald-300 rounded-lg p-4 bg-emerald-50 space-y-4">
           <h3 className="font-semibold text-gray-900">Add New Family Member</h3>
+          <div className="flex justify-center mb-4">
+            <ProfilePictureUpload
+              currentImage={formData.pictureUrl}
+              onImageChange={(url) => setFormData({ ...formData, pictureUrl: url })}
+              label="Family Member Photo"
+              size="md"
+            />
+          </div>
           <input
             type="text"
             placeholder="Name *"

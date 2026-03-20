@@ -53,7 +53,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { name, dateOfBirth, gender, vaccineCardUrl } = body;
+    const { name, dateOfBirth, gender, vaccineCardUrl, pictureUrl } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -69,6 +69,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
         dateOfBirth,
         gender,
         vaccineCardUrl,
+        pictureUrl,
         updatedAt: new Date(),
       })
       .where(eq(familyMembers.id, familyMemberId))

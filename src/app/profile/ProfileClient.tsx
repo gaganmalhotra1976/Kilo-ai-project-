@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { CustomerFamilyMembers } from "./CustomerFamilyMembers";
+import { ProfilePictureUpload } from "./ProfilePictureUpload";
+import { BookingDetailsModal } from "./BookingDetailsModal";
 
 interface Customer {
   id: number;
@@ -11,6 +14,7 @@ interface Customer {
   email: string | null;
   address: string | null;
   city: string;
+  pictureUrl: string | null;
 }
 
 interface FamilyMember {
@@ -19,14 +23,30 @@ interface FamilyMember {
   name: string;
   dateOfBirth: string | null;
   gender: string | null;
+  pictureUrl: string | null;
+  vaccineCardUrl: string | null;
 }
 
 interface Booking {
   id: number;
-  status: string;
+  customerId: number;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string | null;
+  address: string;
+  city: string;
   vaccinesRequested: string;
+  numberOfPeople: number;
+  bookingType: string;
   preferredDate: string | null;
-  createdAt: Date;
+  preferredTime: string | null;
+  patientNames: string | null;
+  status: string;
+  paymentStatus: string;
+  adminNotes: string | null;
+  assignedNurse: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export function ProfileClient() {
@@ -36,10 +56,19 @@ export function ProfileClient() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ name: "", phone: "", email: "", address: "", city: "Delhi" });
+  const [editForm, setEditForm] = useState({ 
+    name: "", 
+    phone: "", 
+    email: "", 
+    address: "", 
+    city: "Delhi",
+    pictureUrl: ""
+  });
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   useEffect(() => {
     // Get customer data from localStorage (set during login)
@@ -59,6 +88,7 @@ export function ProfileClient() {
       email: null,
       address: null,
       city: "Delhi",
+      pictureUrl: null,
     });
 
     // Initialize edit form
@@ -68,6 +98,7 @@ export function ProfileClient() {
       email: "",
       address: "",
       city: "Delhi",
+      pictureUrl: "",
     });
 
     // Try to fetch additional data from API (non-critical)
@@ -85,6 +116,7 @@ export function ProfileClient() {
             email: customerData.email || "",
             address: customerData.address || "",
             city: customerData.city || "Delhi",
+            pictureUrl: customerData.pictureUrl || "",
           });
         }
       } catch (e) {
@@ -131,6 +163,7 @@ export function ProfileClient() {
         email: customer.email || "",
         address: customer.address || "",
         city: customer.city,
+        pictureUrl: customer.pictureUrl || "",
       });
     }
   };
@@ -164,6 +197,18 @@ export function ProfileClient() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleProfilePictureChange = (url: string) => {
+    setEditForm({ ...editForm, pictureUrl: url });
+    if (customer) {
+      setCustomer({ ...customer, pictureUrl: url });
+    }
+  };
+
+  const handleBookingClick = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setShowBookingModal(true);
   };
 
   const handleLogout = () => {
@@ -251,6 +296,14 @@ export function ProfileClient() {
             
             {isEditing ? (
               <div className="space-y-4">
+                <div className="flex justify-center mb-4">
+                  <ProfilePictureUpload
+                    currentImage={editForm.pictureUrl}
+                    onImageChange={handleProfilePictureChange}
+                    label="Profile Picture"
+                    size="lg"
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                   <input
@@ -318,9 +371,24 @@ export function ProfileClient() {
               </div>
             ) : (
               <div className="space-y-4">
-                <div>
-                  <label className="text-sm text-gray-500">Name</label>
-                  <p className="text-gray-900 font-medium">{customer.name}</p>
+                <div className="flex items-center gap-4 mb-4">
+                  {customer.pictureUrl ? (
+                    <img
+                      src={customer.pictureUrl}
+                      alt={customer.name}
+                      className="w-20 h-20 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <span className="text-emerald-600 text-2xl font-bold">
+                        {customer.name.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xl font-bold text-gray-900">{customer.name}</p>
+                    <p className="text-gray-500">{customer.city}</p>
+                  </div>
                 </div>
                 <div>
                   <label className="text-sm text-gray-500">Phone</label>
@@ -334,10 +402,6 @@ export function ProfileClient() {
                   <label className="text-sm text-gray-500">Address</label>
                   <p className="text-gray-900">{customer.address || "Not provided"}</p>
                 </div>
-                <div>
-                  <label className="text-sm text-gray-500">City</label>
-                  <p className="text-gray-900">{customer.city}</p>
-                </div>
               </div>
             )}
           </div>
@@ -345,20 +409,10 @@ export function ProfileClient() {
           {/* Family Members */}
           <div className="bg-white rounded-2xl border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Family Members</h2>
-            {familyMembers.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No family members added</p>
-            ) : (
-              <div className="space-y-3">
-                {familyMembers.map((member) => (
-                  <div key={member.id} className="border border-gray-100 rounded-lg p-3">
-                    <p className="font-medium text-gray-900">{member.name}</p>
-                    <p className="text-sm text-gray-500">
-                      {member.gender} • {member.dateOfBirth || "DOB not set"}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
+            <CustomerFamilyMembers
+              customerId={customer.id}
+              initialFamilyMembers={familyMembers}
+            />
           </div>
 
           {/* Recent Bookings */}
@@ -377,7 +431,11 @@ export function ProfileClient() {
             ) : (
               <div className="space-y-4">
                 {bookings.map((booking) => (
-                  <div key={booking.id} className="border border-gray-200 rounded-lg p-4">
+                  <div 
+                    key={booking.id} 
+                    onClick={() => handleBookingClick(booking)}
+                    className="border border-gray-200 rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="font-medium text-gray-900">
@@ -395,20 +453,28 @@ export function ProfileClient() {
                             ? new Date(booking.preferredDate).toLocaleDateString("en-IN")
                             : "Date not specified"}
                         </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          Booking #{booking.id} • {booking.bookingType}
+                        </p>
                       </div>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          booking.status === "completed"
-                            ? "bg-green-100 text-green-800"
-                            : booking.status === "confirmed"
-                            ? "bg-blue-100 text-blue-800"
-                            : booking.status === "quoted"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {booking.status}
-                      </span>
+                      <div className="text-right">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            booking.status === "completed"
+                              ? "bg-green-100 text-green-800"
+                              : booking.status === "confirmed"
+                              ? "bg-blue-100 text-blue-800"
+                              : booking.status === "quoted"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : booking.status === "cancelled"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {booking.status}
+                        </span>
+                        <p className="text-xs text-gray-400 mt-1">Click for details</p>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -417,6 +483,16 @@ export function ProfileClient() {
           </div>
         </div>
       </main>
+
+      {/* Booking Details Modal */}
+      <BookingDetailsModal
+        booking={selectedBooking}
+        isOpen={showBookingModal}
+        onClose={() => {
+          setShowBookingModal(false);
+          setSelectedBooking(null);
+        }}
+      />
     </div>
   );
 }
