@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 
 function RegisterForm() {
   const router = useRouter();
@@ -245,9 +246,9 @@ function RegisterForm() {
         <div className="mt-6 text-center">
           <p className="text-gray-600 text-sm">
             Already have an account?{" "}
-            <a href="/login" className="text-emerald-600 hover:underline font-medium">
+            <Link href="/login" className="text-emerald-600 hover:underline font-medium">
               Sign in
-            </a>
+            </Link>
           </p>
         </div>
       </div>
