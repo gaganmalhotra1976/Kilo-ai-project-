@@ -6,6 +6,7 @@ import Link from "next/link";
 import { CustomerFamilyMembers } from "./CustomerFamilyMembers";
 import { ProfilePictureUpload } from "./ProfilePictureUpload";
 import { BookingDetailsModal } from "./BookingDetailsModal";
+import { ConsultationVouchers } from "./ConsultationVouchers";
 
 interface Customer {
   id: number;
@@ -480,6 +481,11 @@ export function ProfileClient() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Free Consultation Vouchers */}
+          <div className="lg:col-span-2">
+            <ConsultationVouchers customerId={customer.id} />
           </div>
         </div>
       </main>
