@@ -45,18 +45,25 @@ function LoginForm() {
         ),
       });
 
-      if (response.ok) {
-        const data = await response.json();
+      let data;
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        data = { error: "Server error. Please try again." };
+      }
+
+      if (response.ok && data.token) {
         localStorage.setItem("authToken", data.token);
         localStorage.setItem("customerId", data.customer.id.toString());
         localStorage.setItem("customerName", data.customer.name);
         window.dispatchEvent(new Event("storage"));
         router.push(redirectTo);
       } else {
-        const data = await response.json();
         setError(data.error || "Invalid credentials");
       }
-    } catch {
+    } catch (err) {
+      console.error("Login error:", err);
       setError("Login failed. Please try again.");
     } finally {
       setIsLoading(false);
