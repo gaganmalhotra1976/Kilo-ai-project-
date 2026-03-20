@@ -6,8 +6,8 @@ import Link from "next/link";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const [step, setStep] = useState("send"); // send | verify | reset
-  const [identifier, setIdentifier] = useState(""); // email or phone
+  const [step, setStep] = useState("send");
+  const [identifier, setIdentifier] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -34,13 +34,13 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify(isEmail ? { email: identifier } : { phone: identifier }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        const data = await response.json();
         setSuccess(data.message);
         setStep("verify");
         setCountdown(60);
       } else {
-        const data = await response.json();
         setError(data.error || "Failed to send OTP");
       }
     } catch {
@@ -69,11 +69,12 @@ export default function ForgotPasswordPage() {
         }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         setSuccess("OTP verified successfully. You can now reset your password.");
         setStep("reset");
       } else {
-        const data = await response.json();
         setError(data.error || "Invalid OTP");
       }
     } catch {
@@ -112,12 +113,12 @@ export default function ForgotPasswordPage() {
         }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        const data = await response.json();
         setSuccess("Password reset successfully. You can now login.");
         setTimeout(() => router.push("/login"), 2000);
       } else {
-        const data = await response.json();
         setError(data.error || "Failed to reset password");
       }
     } catch {
