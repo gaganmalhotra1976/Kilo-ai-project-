@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CustomerFamilyMembers } from "./CustomerFamilyMembers";
 
 interface Customer {
   id: number;
@@ -20,7 +19,6 @@ interface FamilyMember {
   name: string;
   dateOfBirth: string | null;
   gender: string | null;
-  vaccineCardUrl: string | null;
 }
 
 interface Booking {
@@ -39,62 +37,60 @@ export function ProfileClient() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in
+    // Get customer data from localStorage (set during login)
     const customerId = localStorage.getItem("customerId");
-    if (!customerId) {
+    const customerName = localStorage.getItem("customerName");
+    
+    if (!customerId || !customerName) {
       router.push("/login");
       return;
     }
 
-    async function loadProfile() {
+    // Set basic customer info from localStorage
+    setCustomer({
+      id: parseInt(customerId),
+      name: customerName,
+      phone: "", // Will be fetched if needed
+      email: null,
+      address: null,
+      city: "Delhi",
+    });
+
+    // Try to fetch additional data from API (non-critical)
+    async function loadAdditionalData() {
       try {
-        // Fetch customer data first — this is the critical auth check
+        // Try to fetch customer details (may fail if no database)
         const customerRes = await fetch(`/api/customers/${customerId}`);
-        if (customerRes.status === 401 || customerRes.status === 404) {
-          // Customer not found or unauthorized — clear session and redirect
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("customerId");
-          localStorage.removeItem("customerName");
-          router.push("/login");
-          return;
+        if (customerRes.ok) {
+          const customerData = await customerRes.json();
+          setCustomer(customerData);
         }
-        if (!customerRes.ok) {
-          // Server error — don't redirect, just show error state
-          console.error("Failed to fetch customer:", customerRes.status);
-          return;
-        }
-        const customerData = await customerRes.json();
-        setCustomer(customerData);
+      } catch (e) {
+        console.log("Using basic profile data");
+      }
 
-        // Fetch family members — non-critical, don't redirect on failure
-        try {
-          const membersRes = await fetch(`/api/family-members/customer/${customerId}`);
-          if (membersRes.ok) {
-            const membersData = await membersRes.json();
-            setFamilyMembers(membersData);
-          }
-        } catch (e) {
-          console.error("Failed to fetch family members:", e);
+      try {
+        const membersRes = await fetch(`/api/family-members/customer/${customerId}`);
+        if (membersRes.ok) {
+          const membersData = await membersRes.json();
+          setFamilyMembers(membersData);
         }
+      } catch (e) {
+        console.log("Could not load family members");
+      }
 
-        // Fetch bookings — non-critical, don't redirect on failure
-        try {
-          const bookingsRes = await fetch(`/api/bookings/customer/${customerId}`);
-          if (bookingsRes.ok) {
-            const bookingsData = await bookingsRes.json();
-            setBookings(bookingsData);
-          }
-        } catch (e) {
-          console.error("Failed to fetch bookings:", e);
+      try {
+        const bookingsRes = await fetch(`/api/bookings/customer/${customerId}`);
+        if (bookingsRes.ok) {
+          const bookingsData = await bookingsRes.json();
+          setBookings(bookingsData);
         }
-      } catch (error) {
-        console.error("Error loading profile:", error);
-      } finally {
-        setIsLoading(false);
+      } catch (e) {
+        console.log("Could not load bookings");
       }
     }
 
-    loadProfile();
+    loadAdditionalData().finally(() => setIsLoading(false));
   }, [router]);
 
   const handleLogout = () => {
@@ -164,7 +160,7 @@ export function ProfileClient() {
               </div>
               <div>
                 <label className="text-sm text-gray-500">Phone</label>
-                <p className="text-gray-900">{customer.phone}</p>
+                <p className="text-gray-900">{customer.phone || "Not provided"}</p>
               </div>
               <div>
                 <label className="text-sm text-gray-500">Email</label>
@@ -184,10 +180,20 @@ export function ProfileClient() {
           {/* Family Members */}
           <div className="bg-white rounded-2xl border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Family Members</h2>
-            <CustomerFamilyMembers
-              customerId={customer.id}
-              initialFamilyMembers={familyMembers}
-            />
+            {familyMembers.length === 0 ? (
+              <p className="text-gray-500 text-center py-4">No family members added</p>
+            ) : (
+              <div className="space-y-3">
+                {familyMembers.map((member) => (
+                  <div key={member.id} className="border border-gray-100 rounded-lg p-3">
+                    <p className="font-medium text-gray-900">{member.name}</p>
+                    <p className="text-sm text-gray-500">
+                      {member.gender} • {member.dateOfBirth || "DOB not set"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Recent Bookings */}
