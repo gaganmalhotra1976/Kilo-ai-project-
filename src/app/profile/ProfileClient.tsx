@@ -35,6 +35,11 @@ export function ProfileClient() {
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: "", phone: "", email: "", address: "", city: "Delhi" });
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     // Get customer data from localStorage (set during login)
@@ -56,6 +61,15 @@ export function ProfileClient() {
       city: "Delhi",
     });
 
+    // Initialize edit form
+    setEditForm({
+      name: customerName,
+      phone: "",
+      email: "",
+      address: "",
+      city: "Delhi",
+    });
+
     // Try to fetch additional data from API (non-critical)
     async function loadAdditionalData() {
       try {
@@ -64,6 +78,14 @@ export function ProfileClient() {
         if (customerRes.ok) {
           const customerData = await customerRes.json();
           setCustomer(customerData);
+          // Update edit form with fetched data
+          setEditForm({
+            name: customerData.name || customerName,
+            phone: customerData.phone || "",
+            email: customerData.email || "",
+            address: customerData.address || "",
+            city: customerData.city || "Delhi",
+          });
         }
       } catch (e) {
         console.log("Using basic profile data");
@@ -92,6 +114,57 @@ export function ProfileClient() {
 
     loadAdditionalData().finally(() => setIsLoading(false));
   }, [router]);
+
+  const handleEditProfile = () => {
+    setIsEditing(true);
+    setSaveError("");
+    setSaveSuccess(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    // Reset form to current customer data
+    if (customer) {
+      setEditForm({
+        name: customer.name,
+        phone: customer.phone || "",
+        email: customer.email || "",
+        address: customer.address || "",
+        city: customer.city,
+      });
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!customer) return;
+    
+    setIsSaving(true);
+    setSaveError("");
+    setSaveSuccess(false);
+
+    try {
+      const response = await fetch(`/api/customers/${customer.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editForm),
+      });
+
+      if (response.ok) {
+        const updatedCustomer = await response.json();
+        setCustomer(updatedCustomer);
+        // Update localStorage with new name
+        localStorage.setItem("customerName", editForm.name);
+        setIsEditing(false);
+        setSaveSuccess(true);
+      } else {
+        setSaveError("Failed to update profile. Please try again.");
+      }
+    } catch (e) {
+      setSaveError("Failed to update profile. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
@@ -152,29 +225,121 @@ export function ProfileClient() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Personal Information */}
           <div className="bg-white rounded-2xl border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Personal Information</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm text-gray-500">Name</label>
-                <p className="text-gray-900 font-medium">{customer.name}</p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500">Phone</label>
-                <p className="text-gray-900">{customer.phone || "Not provided"}</p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500">Email</label>
-                <p className="text-gray-900">{customer.email || "Not provided"}</p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500">Address</label>
-                <p className="text-gray-900">{customer.address || "Not provided"}</p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500">City</label>
-                <p className="text-gray-900">{customer.city}</p>
-              </div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
+              {!isEditing && (
+                <button
+                  onClick={handleEditProfile}
+                  className="text-emerald-600 hover:text-emerald-700 text-sm font-medium"
+                >
+                  Edit Profile
+                </button>
+              )}
             </div>
+            
+            {saveError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                {saveError}
+              </div>
+            )}
+            
+            {saveSuccess && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+                Profile updated successfully!
+              </div>
+            )}
+            
+            {isEditing ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <input
+                    type="tel"
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="Enter phone number"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="Enter email address"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                  <textarea
+                    value={editForm.address}
+                    onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    rows={3}
+                    placeholder="Enter your address"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                  <input
+                    type="text"
+                    value={editForm.city}
+                    onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={handleSaveProfile}
+                    disabled={isSaving}
+                    className="flex-1 bg-emerald-600 text-white py-2 px-4 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                  >
+                    {isSaving ? "Saving..." : "Save Changes"}
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    disabled={isSaving}
+                    className="flex-1 border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm text-gray-500">Name</label>
+                  <p className="text-gray-900 font-medium">{customer.name}</p>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500">Phone</label>
+                  <p className="text-gray-900">{customer.phone || "Not provided"}</p>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500">Email</label>
+                  <p className="text-gray-900">{customer.email || "Not provided"}</p>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500">Address</label>
+                  <p className="text-gray-900">{customer.address || "Not provided"}</p>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500">City</label>
+                  <p className="text-gray-900">{customer.city}</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Family Members */}
