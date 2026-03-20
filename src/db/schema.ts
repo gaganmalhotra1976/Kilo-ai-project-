@@ -352,6 +352,7 @@ export const consultationVouchers = sqliteTable("consultation_vouchers", {
   quoteId: integer("quote_id").references(() => quotes.id),
   issueDate: integer("issue_date", { mode: "timestamp" }).notNull(),
   expiryDate: integer("expiry_date", { mode: "timestamp" }).notNull(),
+  voucherValue: real("voucher_value").notNull().default(500), // Value of the voucher in ₹
   status: text("status").notNull().default("active"), // active | redeemed | expired | converted
   redeemedDate: integer("redeemed_date", { mode: "timestamp" }),
   redeemedBy: text("redeemed_by"), // Staff who processed redemption
@@ -360,6 +361,24 @@ export const consultationVouchers = sqliteTable("consultation_vouchers", {
   convertedToBookingId: integer("converted_to_booking_id").references(() => bookings.id),
   convertedBy: text("converted_by"), // Staff who processed conversion
   convertedAt: integer("converted_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
+
+// ── Free Consultation Bookings ──────────────────────────────────────────────────
+// Patients book free consultation slots using their vouchers
+// Working hours: Weekdays 11 AM - 2 PM, 7 PM - 9 PM
+// Max 6 bookings per 1-hour slot
+export const consultationBookings = sqliteTable("consultation_bookings", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  voucherId: integer("voucher_id").notNull().references(() => consultationVouchers.id),
+  customerId: integer("customer_id").notNull().references(() => customers.id),
+  patientName: text("patient_name").notNull(),
+  consultationDate: text("consultation_date").notNull(), // ISO date string (YYYY-MM-DD)
+  consultationTime: text("consultation_time").notNull(), // Time slot (e.g., "11:00", "14:00")
+  status: text("status").notNull().default("booked"), // booked | completed | cancelled | no_show
+  notes: text("notes"),
+  doctorName: text("doctor_name"),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
