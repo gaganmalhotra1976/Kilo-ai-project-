@@ -64,11 +64,12 @@ export function CustomerFamilyMembers({
         setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardUrl: "", pictureUrl: "" });
         setIsAdding(false);
       } else {
-        alert("Failed to add family member");
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        alert(errorData.error || "Failed to add family member");
       }
     } catch (error) {
       console.error("Error adding family member:", error);
-      alert("Failed to add family member");
+      alert("Network error. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -104,11 +105,12 @@ export function CustomerFamilyMembers({
         setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardUrl: "", pictureUrl: "" });
         setEditingId(null);
       } else {
-        alert("Failed to update family member");
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        alert(errorData.error || "Failed to update family member");
       }
     } catch (error) {
       console.error("Error updating family member:", error);
-      alert("Failed to update family member");
+      alert("Network error. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
     }
@@ -130,11 +132,12 @@ export function CustomerFamilyMembers({
           familyMembersList.filter((fm) => fm.id !== id)
         );
       } else {
-        alert("Failed to delete family member");
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        alert(errorData.error || "Failed to delete family member");
       }
     } catch (error) {
       console.error("Error deleting family member:", error);
-      alert("Failed to delete family member");
+      alert("Network error. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
     }
