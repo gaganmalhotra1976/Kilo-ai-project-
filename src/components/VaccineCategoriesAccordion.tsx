@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type BadgeColor = "blue" | "green" | "orange" | "purple" | "teal";
 
@@ -217,8 +218,24 @@ const AGE_BANDS: AgeBand[] = [
 
 export default function VaccineCategoriesAccordion() {
   const [activeId, setActiveId] = useState<string>("cat0");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const router = useRouter();
 
   const active = AGE_BANDS.find((b) => b.id === activeId) ?? AGE_BANDS[0];
+
+  const toggleVaccine = (name: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(name) ? next.delete(name) : next.add(name);
+      return next;
+    });
+  };
+
+  const bookSelected = (vaccines: string[]) => {
+    const params = new URLSearchParams();
+    vaccines.forEach((v) => params.append("vaccine", v));
+    router.push(`/book?${params.toString()}`);
+  };
 
   return (
     <section className="py-14 sm:py-20 bg-[#f5f5f5]">
@@ -271,19 +288,57 @@ export default function VaccineCategoriesAccordion() {
             {active.vaccines.map((v, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between bg-[#fafafa] border border-[#f0f0f0] rounded-xl px-3 py-3 mt-2 gap-2"
+                onClick={() => toggleVaccine(v.name)}
+                className={`flex items-center justify-between rounded-xl px-3 py-3 mt-2 gap-2 cursor-pointer transition-all border ${
+                  selected.has(v.name)
+                    ? "bg-[#e8f5f0] border-[#2e7d5e]"
+                    : "bg-[#fafafa] border-[#f0f0f0] hover:border-[#2e7d5e]"
+                }`}
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-2 h-2 rounded-full bg-[#2e7d5e] flex-shrink-0" />
+                  <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 border ${
+                    selected.has(v.name) ? "bg-[#2e7d5e] border-[#2e7d5e]" : "border-gray-300"
+                  }`}>
+                    {selected.has(v.name) && (
+                      <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
                   <span className="text-sm font-medium text-gray-900">{v.name}</span>
                 </div>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap flex-shrink-0 ${BADGE_CLASSES[v.badgeColor]}`}
-                >
-                  {v.badge}
-                </span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap ${BADGE_CLASSES[v.badgeColor]}`}>
+                    {v.badge}
+                  </span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); bookSelected([v.name]); }}
+                    className="text-xs bg-[#2e7d5e] text-white px-2.5 py-1 rounded-full hover:bg-[#245f49] transition-colors whitespace-nowrap"
+                  >
+                    Book
+                  </button>
+                </div>
               </div>
             ))}
+          </div>
+
+          {/* Book selected / Book all buttons */}
+          <div className="px-3 pb-4 pt-2 flex gap-2">
+            {selected.size > 0 ? (
+              <button
+                onClick={() => bookSelected(Array.from(selected))}
+                className="flex-1 bg-[#2e7d5e] text-white font-semibold py-2.5 rounded-xl hover:bg-[#245f49] transition-colors text-sm"
+              >
+                Book {selected.size} Selected Vaccine{selected.size > 1 ? "s" : ""} →
+              </button>
+            ) : (
+              <button
+                onClick={() => bookSelected(active.vaccines.map((v) => v.name))}
+                className="flex-1 border border-[#2e7d5e] text-[#2e7d5e] font-semibold py-2.5 rounded-xl hover:bg-[#e8f5f0] transition-colors text-sm"
+              >
+                Book All {active.vaccines.length} Vaccines for {active.label} →
+              </button>
+            )}
           </div>
         </div>
       </div>

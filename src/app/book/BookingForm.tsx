@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const VACCINE_OPTIONS = [
   "Flu (Influenza)",
@@ -41,11 +41,17 @@ interface CustomerProfile {
   landmark: string | null;
 }
 
-export default function BookingForm() {
+function BookingFormInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [selectedVaccines, setSelectedVaccines] = useState<string[]>([]);
+
+  // Pre-select vaccines passed from home page via ?vaccine=X&vaccine=Y
+  const preSelected = searchParams.getAll("vaccine");
+  const [selectedVaccines, setSelectedVaccines] = useState<string[]>(
+    preSelected.length > 0 ? preSelected : []
+  );
   const [authChecking, setAuthChecking] = useState(true);
 
   // Family member selection state
@@ -241,6 +247,18 @@ export default function BookingForm() {
       onSubmit={handleSubmit}
       className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-6"
     >
+      {/* Pre-selected vaccines notice */}
+      {preSelected.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div className="flex items-center gap-2">
+            <span className="text-blue-600">💉</span>
+            <p className="text-sm text-blue-800">
+              <span className="font-medium">{preSelected.length} vaccine{preSelected.length > 1 ? "s" : ""} pre-selected</span> from the schedule. You can add or remove below.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Profile data notice */}
       {customerProfile && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
@@ -651,5 +669,19 @@ export default function BookingForm() {
         By submitting, you agree to be contacted by our team. We never share your data.
       </p>
     </form>
+  );
+}
+
+export default function BookingForm() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-24">
+          <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <BookingFormInner />
+    </Suspense>
   );
 }
