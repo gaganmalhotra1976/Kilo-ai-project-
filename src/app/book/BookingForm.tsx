@@ -165,6 +165,7 @@ function BookingFormInner() {
   // Address change confirmation
   const [showAddressConfirm, setShowAddressConfirm] = useState(false);
   const [useDifferentAddress, setUseDifferentAddress] = useState(false);
+  const [savedAddress, setSavedAddress] = useState<{address: string; city: string; pinCode: string; landmark: string} | null>(null);
 
   // Date selection (for Sunday detection)
   const [selectedDate, setSelectedDate] = useState("");
@@ -216,14 +217,18 @@ function BookingFormInner() {
           if (data?.success && data.data) {
             const profile = data.data;
             setCustomerProfile(profile);
-            setFormValues({
-              customerName: profile.name || storedName || "",
-              customerPhone: profile.phone || "",
-              customerEmail: profile.email || "",
+            const profileAddress = {
               address: profile.address || "",
               city: profile.city || "Delhi",
               pinCode: profile.pinCode || "",
               landmark: profile.landmark || "",
+            };
+            setSavedAddress(profileAddress);
+            setFormValues({
+              customerName: profile.name || storedName || "",
+              customerPhone: profile.phone || "",
+              customerEmail: profile.email || "",
+              ...profileAddress,
             });
             if (profile.address) {
               setShowAddressConfirm(true);
@@ -262,14 +267,15 @@ function BookingFormInner() {
     );
   }
 
-  async function handleAddMember(e: React.FormEvent) {
+  async function handleAddMember(e: React.MouseEvent) {
     e.preventDefault();
+    e.stopPropagation();
     if (!newMember.name.trim()) {
       setAddMemberError("Please enter a name");
       return;
     }
-    if (!customerId) {
-      setAddMemberError("Please log in to add family members");
+    if (!customerId || customerId === "null") {
+      setAddMemberError("Session error. Please refresh and try again.");
       return;
     }
     setAddMemberLoading(true);
@@ -549,7 +555,7 @@ function BookingFormInner() {
             {!showAddMember ? (
               <button
                 type="button"
-                onClick={() => setShowAddMember(true)}
+                onClick={(e) => { e.preventDefault(); setShowAddMember(true); }}
                 className="flex items-center gap-2 text-sm text-emerald-700 font-medium border border-emerald-300 rounded-xl px-4 py-2 hover:bg-emerald-50 transition-colors"
               >
                 <span className="text-lg leading-none">+</span> Add Family Member
@@ -595,7 +601,7 @@ function BookingFormInner() {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={handleAddMember}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleAddMember(e); }}
                     disabled={addMemberLoading || !newMember.name.trim()}
                     className="bg-emerald-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
                   >
@@ -603,7 +609,7 @@ function BookingFormInner() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setShowAddMember(false); setAddMemberError(""); setNewMember({ name: "", dateOfBirth: "", gender: "" }); }}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowAddMember(false); setAddMemberError(""); setNewMember({ name: "", dateOfBirth: "", gender: "" }); }}
                     className="text-sm text-gray-500 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     Cancel
@@ -636,7 +642,11 @@ function BookingFormInner() {
               </button>
               <button
                 type="button"
-                onClick={() => { setUseDifferentAddress(true); setShowAddressConfirm(false); setFormValues({ ...formValues, address: "", city: "Delhi", pinCode: "", landmark: "" }); }}
+                onClick={() => {
+                  setUseDifferentAddress(true);
+                  setShowAddressConfirm(false);
+                  setFormValues({ ...formValues, address: "", city: "Delhi", pinCode: "", landmark: "" });
+                }}
                 className="border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 No, use different address
@@ -647,6 +657,26 @@ function BookingFormInner() {
 
         {(!showAddressConfirm || useDifferentAddress) && (
           <div className="space-y-4">
+            {/* Option to go back to saved address */}
+            {useDifferentAddress && savedAddress && savedAddress.address && (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 flex items-center justify-between">
+                <div className="text-xs text-gray-600">
+                  <p className="font-medium">Saved address available</p>
+                  <p>{savedAddress.address}, {savedAddress.city} - {savedAddress.pinCode}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUseDifferentAddress(false);
+                    setShowAddressConfirm(false);
+                    setFormValues({ ...formValues, ...savedAddress });
+                  }}
+                  className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                >
+                  Use saved address
+                </button>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Full Address <span className="text-red-500">*</span>
