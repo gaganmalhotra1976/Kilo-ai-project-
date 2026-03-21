@@ -264,20 +264,27 @@ function BookingFormInner() {
 
   async function handleAddMember(e: React.FormEvent) {
     e.preventDefault();
-    if (!newMember.name.trim()) return;
+    if (!newMember.name.trim()) {
+      setAddMemberError("Please enter a name");
+      return;
+    }
+    if (!customerId) {
+      setAddMemberError("Please log in to add family members");
+      return;
+    }
     setAddMemberLoading(true);
     setAddMemberError("");
     try {
       const res = await fetch("/api/family-members", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...newMember, customerId: Number(customerId) }),
+        body: JSON.stringify({ ...newMember, customerId: parseInt(customerId) }),
       });
+      const json = await res.json();
       if (!res.ok) {
-        const json = await res.json();
         throw new Error(json.error || "Failed to add member");
       }
-      const added: FamilyMember = await res.json();
+      const added: FamilyMember = json;
       setFamilyMembers((prev) => [...prev, added]);
       setSelectedPatients((prev) => [...prev, String(added.id)]);
       setNewMember({ name: "", dateOfBirth: "", gender: "" });
