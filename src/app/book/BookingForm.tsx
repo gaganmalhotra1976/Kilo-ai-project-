@@ -66,6 +66,10 @@ function BookingFormInner() {
   const [showAddressConfirm, setShowAddressConfirm] = useState(false);
   const [useDifferentAddress, setUseDifferentAddress] = useState(false);
 
+  // Date selection (for Sunday detection)
+  const [selectedDate, setSelectedDate] = useState("");
+  const isSunday = selectedDate ? new Date(selectedDate).getDay() === 0 : false;
+
   // Form values (pre-filled from profile)
   const [formValues, setFormValues] = useState({
     customerName: "",
@@ -186,9 +190,19 @@ function BookingFormInner() {
       return;
     }
 
+    // Sunday booking validation
+    const isSundayBooking = selectedDate && new Date(selectedDate).getDay() === 0;
+    const formEl = e.currentTarget;
+    const sundayCheckbox = formEl.querySelector<HTMLInputElement>('input[name="sundayAdvanceAccepted"]');
+    const sundayAdvanceAccepted = sundayCheckbox?.checked ?? false;
+
+    if (isSundayBooking && !sundayAdvanceAccepted) {
+      setError("Please accept the non-refundable Sunday advance to proceed.");
+      return;
+    }
+
     setLoading(true);
-    const form = e.currentTarget;
-    const data = new FormData(form);
+    const data = new FormData(formEl);
 
     // Build patient names list
     let patientNames: string[] | null = null;
@@ -209,9 +223,12 @@ function BookingFormInner() {
       vaccinesRequested: selectedVaccines,
       numberOfPeople: patientNames ? patientNames.length : (parseInt(data.get("numberOfPeople") as string, 10) || 1),
       bookingType: data.get("bookingType") as string,
-      preferredDate: data.get("preferredDate") as string,
+      preferredDate: selectedDate,
       preferredTime: data.get("preferredTime") as string,
       patientNames,
+      isSundayBooking,
+      sundayAdvanceAccepted,
+      ...(isSundayBooking && { advanceAmount: 299 }),
     };
 
     try {
@@ -631,6 +648,8 @@ function BookingFormInner() {
               name="preferredDate"
               type="date"
               min={new Date().toISOString().split("T")[0]}
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
@@ -643,12 +662,35 @@ function BookingFormInner() {
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
             >
               <option value="">Any time</option>
-              <option value="morning">Morning (8am – 12pm)</option>
-              <option value="afternoon">Afternoon (12pm – 4pm)</option>
-              <option value="evening">Evening (4pm – 7pm)</option>
+              <option value="12pm-4pm">12 PM – 4 PM</option>
+              <option value="4pm-7pm">4 PM – 7 PM</option>
             </select>
           </div>
         </div>
+
+        {/* Sunday booking notice */}
+        {isSunday && (
+          <div className="mt-4 bg-orange-50 border border-orange-200 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-xl mt-0.5">⚠️</span>
+              <div>
+                <p className="font-semibold text-orange-800">Sunday Booking</p>
+                <p className="text-sm text-orange-700 mt-1">
+                  Sunday bookings require a <span className="font-bold">non-refundable advance payment</span> of ₹299.
+                  This advance is adjusted against your final invoice but will not be refunded if cancelled.
+                </p>
+                <label className="flex items-center gap-2 mt-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="sundayAdvanceAccepted"
+                    className="accent-orange-600 w-4 h-4"
+                  />
+                  <span className="text-sm text-orange-800 font-medium">I accept the non-refundable Sunday advance</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {error && (
