@@ -5,7 +5,7 @@ import { familyMembers } from "@/db/schema";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { customerId, name, dateOfBirth, gender, vaccineCardUrl, pictureData, registrationNumber } = body;
+    const { customerId, name, dateOfBirth, gender, vaccineCardData, pictureData, registrationNumber } = body;
 
     if (!customerId || !name) {
       return NextResponse.json(
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
         name,
         dateOfBirth,
         gender,
-        vaccineCardUrl,
+        vaccineCardData,
         pictureData,
       })
       .returning();

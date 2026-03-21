@@ -9,7 +9,7 @@ interface FamilyMember {
   name: string;
   dateOfBirth: string | null;
   gender: string | null;
-  vaccineCardUrl: string | null;
+  vaccineCardData: string | null;
   createdAt: Date | null;
   updatedAt: Date | null;
 }
@@ -34,7 +34,7 @@ export function FamilyMembersList({
     name: "",
     dateOfBirth: "",
     gender: "",
-    vaccineCardUrl: "",
+    vaccineCardData: "",
   });
 
   const handleAdd = async () => {
@@ -53,14 +53,14 @@ export function FamilyMembersList({
           name: formData.name,
           dateOfBirth: formData.dateOfBirth || null,
           gender: formData.gender || null,
-          vaccineCardUrl: formData.vaccineCardUrl || null,
+          vaccineCardData: formData.vaccineCardData || null,
         }),
       });
 
       if (response.ok) {
         const newFamilyMember = await response.json();
         setFamilyMembersList([...familyMembersList, newFamilyMember]);
-        setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardUrl: "" });
+        setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardData: "" });
         setIsAdding(false);
       } else {
         alert("Failed to add family member");
@@ -88,7 +88,7 @@ export function FamilyMembersList({
           name: formData.name,
           dateOfBirth: formData.dateOfBirth || null,
           gender: formData.gender || null,
-          vaccineCardUrl: formData.vaccineCardUrl || null,
+          vaccineCardData: formData.vaccineCardData || null,
         }),
       });
 
@@ -99,7 +99,7 @@ export function FamilyMembersList({
             fm.id === id ? updatedFamilyMember : fm
           )
         );
-        setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardUrl: "" });
+        setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardData: "" });
         setEditingId(null);
       } else {
         alert("Failed to update family member");
@@ -143,14 +143,14 @@ export function FamilyMembersList({
       name: member.name,
       dateOfBirth: member.dateOfBirth || "",
       gender: member.gender || "",
-      vaccineCardUrl: member.vaccineCardUrl || "",
+      vaccineCardData: member.vaccineCardData || "",
     });
     setEditingId(member.id);
     setIsAdding(false);
   };
 
   const cancelForm = () => {
-    setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardUrl: "" });
+    setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardData: "" });
     setIsAdding(false);
     setEditingId(null);
   };
@@ -211,9 +211,9 @@ export function FamilyMembersList({
               <input
                 type="text"
                 placeholder="Vaccine Card URL"
-                value={formData.vaccineCardUrl}
+                value={formData.vaccineCardData}
                 onChange={(e) =>
-                  setFormData({ ...formData, vaccineCardUrl: e.target.value })
+                  setFormData({ ...formData, vaccineCardData: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               />
@@ -247,11 +247,11 @@ export function FamilyMembersList({
                       </p>
                     )}
                     {member.gender && <p>Gender: {member.gender}</p>}
-                    {member.vaccineCardUrl && (
+                    {member.vaccineCardData && (
                       <p>
                         Vaccine Card:{" "}
                         <a
-                          href={member.vaccineCardUrl}
+                          href={member.vaccineCardData}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-emerald-600 hover:underline"
@@ -314,9 +314,9 @@ export function FamilyMembersList({
           <input
             type="text"
             placeholder="Vaccine Card URL"
-            value={formData.vaccineCardUrl}
+            value={formData.vaccineCardData}
             onChange={(e) =>
-              setFormData({ ...formData, vaccineCardUrl: e.target.value })
+              setFormData({ ...formData, vaccineCardData: e.target.value })
             }
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
           />

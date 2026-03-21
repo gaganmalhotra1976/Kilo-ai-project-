@@ -9,8 +9,8 @@ interface FamilyMember {
   name: string;
   dateOfBirth: string | null;
   gender: string | null;
-  pictureData: string | null; // Base64 encoded image
-  vaccineCardUrl: string | null;
+  pictureData: string | null;
+  vaccineCardData: string | null;
 }
 
 interface CustomerFamilyMembersProps {
@@ -23,7 +23,7 @@ const emptyForm = {
   name: "",
   dateOfBirth: "",
   gender: "",
-  vaccineCardUrl: "",
+  vaccineCardData: "",
   pictureData: "",
 };
 
@@ -118,7 +118,7 @@ export function CustomerFamilyMembers({
           name: formData.name,
           dateOfBirth: formData.dateOfBirth || null,
           gender: formData.gender || null,
-          vaccineCardUrl: formData.vaccineCardUrl || null,
+          vaccineCardData: formData.vaccineCardData || null,
           pictureData: formData.pictureData || null,
         }),
       });
@@ -153,7 +153,7 @@ export function CustomerFamilyMembers({
           name: formData.name,
           dateOfBirth: formData.dateOfBirth || null,
           gender: formData.gender || null,
-          vaccineCardUrl: formData.vaccineCardUrl || null,
+          vaccineCardData: formData.vaccineCardData || null,
           pictureData: formData.pictureData || null,
         }),
       });
@@ -197,7 +197,7 @@ export function CustomerFamilyMembers({
       name: member.name,
       dateOfBirth: member.dateOfBirth || "",
       gender: member.gender || "",
-      vaccineCardUrl: member.vaccineCardUrl || "",
+      vaccineCardData: member.vaccineCardData || "",
       pictureData: member.pictureData || "",
     });
     setEditingId(member.id);
@@ -251,13 +251,14 @@ export function CustomerFamilyMembers({
           <option value="other">Other</option>
         </select>
       </div>
-      <input
-        type="text"
-        placeholder="Vaccine Card URL (optional)"
-        value={formData.vaccineCardUrl}
-        onChange={(e) => setFormData({ ...formData, vaccineCardUrl: e.target.value })}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
-      />
+      <div>
+        <p className="text-xs text-gray-500 mb-1">Vaccine Card (JPEG upload)</p>
+        <ImageUpload
+          value={formData.vaccineCardData}
+          onChange={(base64) => setFormData({ ...formData, vaccineCardData: base64 })}
+          label="Vaccine Card"
+        />
+      </div>
       <div className="flex gap-2 pt-1">
         <button
           type="button"
@@ -328,10 +329,16 @@ export function CustomerFamilyMembers({
                       <p>DOB: {new Date(member.dateOfBirth).toLocaleDateString("en-IN")}</p>
                     )}
                     {member.gender && <p>Gender: {member.gender}</p>}
-                    {member.vaccineCardUrl && (
-                      <a href={member.vaccineCardUrl} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline">
-                        View Vaccine Card
-                      </a>
+                    {member.vaccineCardData && (
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-400 mb-1">Vaccine Card:</p>
+                        <img
+                          src={`data:image/jpeg;base64,${member.vaccineCardData}`}
+                          alt="Vaccine Card"
+                          className="w-32 h-20 object-cover rounded-lg border border-gray-200 cursor-pointer"
+                          onClick={() => window.open(`data:image/jpeg;base64,${member.vaccineCardData}`, "_blank")}
+                        />
+                      </div>
                     )}
                   </div>
                 </div>

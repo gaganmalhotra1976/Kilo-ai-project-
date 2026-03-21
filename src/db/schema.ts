@@ -118,7 +118,7 @@ export const familyMembers = sqliteTable("family_members", {
   name: text("name").notNull(),
   dateOfBirth: text("date_of_birth"), // ISO date string
   gender: text("gender"), // male | female | other
-  vaccineCardUrl: text("vaccine_card_url"), // URL to uploaded vaccine card
+  vaccineCardData: text("vaccine_card_data"), // Base64 encoded vaccine card image (JPEG/PNG)
   pictureData: text("picture_data"), // Base64 encoded image (JPEG/PNG) for family member picture
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()

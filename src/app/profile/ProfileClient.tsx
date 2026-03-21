@@ -29,7 +29,7 @@ interface FamilyMember {
   dateOfBirth: string | null;
   gender: string | null;
   pictureData: string | null;
-  vaccineCardUrl: string | null;
+  vaccineCardData: string | null;
 }
 
 interface Booking {

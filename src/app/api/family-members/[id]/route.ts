@@ -53,7 +53,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { name, dateOfBirth, gender, vaccineCardUrl, pictureData, registrationNumber } = body;
+    const { name, dateOfBirth, gender, vaccineCardData, pictureData, registrationNumber } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -69,7 +69,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
         name,
         dateOfBirth,
         gender,
-        vaccineCardUrl,
+        vaccineCardData,
         pictureData,
         updatedAt: new Date(),
       })
