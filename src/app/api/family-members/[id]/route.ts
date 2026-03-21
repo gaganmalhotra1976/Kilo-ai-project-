@@ -53,7 +53,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { name, dateOfBirth, gender, vaccineCardUrl, pictureUrl } = body;
+    const { name, dateOfBirth, gender, vaccineCardUrl, pictureData, registrationNumber } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -65,11 +65,12 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const updatedFamilyMember = await db
       .update(familyMembers)
       .set({
+        registrationNumber,
         name,
         dateOfBirth,
         gender,
         vaccineCardUrl,
-        pictureUrl,
+        pictureData,
         updatedAt: new Date(),
       })
       .where(eq(familyMembers.id, familyMemberId))

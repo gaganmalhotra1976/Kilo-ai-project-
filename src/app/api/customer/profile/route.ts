@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
-    const { customerId, name, email, phone, address, city, pinCode, landmark, pictureUrl } = body;
+    const { customerId, name, email, phone, address, city, pinCode, landmark, pictureData } = body;
 
     if (!customerId) {
       return NextResponse.json({ error: "Customer ID required" }, { status: 400 });
@@ -62,7 +62,7 @@ export async function PATCH(req: NextRequest) {
     if (city !== undefined) updateData.city = city;
     if (pinCode !== undefined) updateData.pinCode = pinCode;
     if (landmark !== undefined) updateData.landmark = landmark;
-    if (pictureUrl !== undefined) updateData.pictureUrl = pictureUrl;
+    if (pictureData !== undefined) updateData.pictureData = pictureData;
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 });

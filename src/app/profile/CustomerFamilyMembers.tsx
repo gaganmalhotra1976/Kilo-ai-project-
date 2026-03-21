@@ -6,11 +6,12 @@ import { ProfilePictureUpload } from "./ProfilePictureUpload";
 interface FamilyMember {
   id: number;
   customerId: number;
+  registrationNumber: string | null;
   name: string;
   dateOfBirth: string | null;
   gender: string | null;
+  pictureData: string | null; // Base64 encoded image
   vaccineCardUrl: string | null;
-  pictureUrl: string | null;
 }
 
 interface CustomerFamilyMembersProps {
@@ -30,11 +31,12 @@ export function CustomerFamilyMembers({
 
   // Form state
   const [formData, setFormData] = useState({
+    registrationNumber: "",
     name: "",
     dateOfBirth: "",
     gender: "",
     vaccineCardUrl: "",
-    pictureUrl: "",
+    pictureData: "",
   });
 
   const handleAdd = async () => {
@@ -248,66 +250,66 @@ export function CustomerFamilyMembers({
                 </button>
               </div>
             </div>
-          ) : (
-            <div>
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4">
-                  {member.pictureUrl ? (
-                    <img
-                      src={member.pictureUrl}
-                      alt={member.name}
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-500 text-xl font-medium">
-                        {member.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{member.name}</h3>
-                    <div className="text-sm text-gray-500 space-y-1 mt-2">
-                      {member.dateOfBirth && (
-                        <p>
-                          DOB:{" "}
-                          {new Date(member.dateOfBirth).toLocaleDateString("en-IN")}
-                        </p>
-                      )}
-                      {member.gender && <p>Gender: {member.gender}</p>}
-                      {member.vaccineCardUrl && (
-                        <p>
-                          Vaccine Card:{" "}
-                          <a
-                            href={member.vaccineCardUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-emerald-600 hover:underline"
-                          >
-                            View
-                          </a>
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => startEdit(member)}
-                    className="text-emerald-600 hover:text-emerald-700 text-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(member.id)}
-                    className="text-red-600 hover:text-red-700 text-sm"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+           ) : (
+             <div>
+               <div className="flex items-start justify-between">
+                 <div className="flex items-start gap-4">
+                   {member.pictureData ? (
+                     <img
+                       src={`data:image/jpeg;base64,${member.pictureData}`}
+                       alt={member.name}
+                       className="w-16 h-16 rounded-full object-cover"
+                     />
+                   ) : (
+                     <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                       <span className="text-gray-500 text-xl font-medium">
+                         {member.name.charAt(0).toUpperCase()}
+                       </span>
+                     </div>
+                   )}
+                   <div>
+                     <h3 className="font-semibold text-gray-900">{member.name}</h3>
+                     <div className="text-sm text-gray-500 space-y-1 mt-2">
+                       {member.dateOfBirth && (
+                         <p>
+                           DOB:{" "}
+                           {new Date(member.dateOfBirth).toLocaleDateString("en-IN")}
+                         </p>
+                       )}
+                       {member.gender && <p>Gender: {member.gender}</p>}
+                       {member.vaccineCardUrl && (
+                         <p>
+                           Vaccine Card:{" "}
+                           <a
+                             href={member.vaccineCardUrl}
+                             target="_blank"
+                             rel="noopener noreferrer"
+                             className="text-emerald-600 hover:underline"
+                           >
+                             View
+                           </a>
+                         </p>
+                       )}
+                     </div>
+                   </div>
+                 </div>
+                 <div className="flex gap-2">
+                   <button
+                     onClick={() => startEdit(member)}
+                     className="text-emerald-600 hover:text-emerald-700 text-sm"
+                   >
+                     Edit
+                   </button>
+                   <button
+                     onClick={() => handleDelete(member.id)}
+                     className="text-red-600 hover:text-red-700 text-sm"
+                   >
+                     Delete
+                   </button>
+                 </div>
+               </div>
+             </div>
+           )}
         </div>
       ))}
 
@@ -316,12 +318,19 @@ export function CustomerFamilyMembers({
           <h3 className="font-semibold text-gray-900">Add New Family Member</h3>
           <div className="flex justify-center mb-4">
             <ProfilePictureUpload
-              currentImage={formData.pictureUrl}
-              onImageChange={(url) => setFormData({ ...formData, pictureUrl: url })}
+              currentImage={formData.pictureData}
+              onImageChange={(data) => setFormData({ ...formData, pictureData: data })}
               label="Family Member Photo"
               size="md"
             />
           </div>
+          <input
+            type="text"
+            placeholder="Registration Number (Aadhaar/PAN/etc)"
+            value={formData.registrationNumber}
+            onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          />
           <input
             type="text"
             placeholder="Name *"
@@ -368,7 +377,7 @@ export function CustomerFamilyMembers({
             <button
               onClick={cancelForm}
               disabled={isLoading}
-              className="bg-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-400 transition-colors disabled:opacity-50"
+              className="bg-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-400 transition-colors"
             >
               Cancel
             </button>

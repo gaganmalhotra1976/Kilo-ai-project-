@@ -22,7 +22,7 @@ export const customers = sqliteTable("customers", {
   pinCode: text("pin_code"), // PIN/ZIP code
   landmark: text("landmark"), // Nearby landmark for easier navigation
   notes: text("notes"),
-  pictureUrl: text("picture_url"), // Profile picture URL
+  pictureData: text("picture_data"), // Base64 encoded image (JPEG/PNG) for profile picture
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()
   ),
@@ -114,11 +114,12 @@ export const familyMembers = sqliteTable("family_members", {
   customerId: integer("customer_id")
     .notNull()
     .references(() => customers.id),
+  registrationNumber: text("registration_number"), // Family member registration number (e.g., Aadhaar, PAN, etc.)
   name: text("name").notNull(),
   dateOfBirth: text("date_of_birth"), // ISO date string
   gender: text("gender"), // male | female | other
   vaccineCardUrl: text("vaccine_card_url"), // URL to uploaded vaccine card
-  pictureUrl: text("picture_url"), // Family member picture URL
+  pictureData: text("picture_data"), // Base64 encoded image (JPEG/PNG) for family member picture
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()
   ),
