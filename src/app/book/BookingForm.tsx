@@ -228,7 +228,7 @@ function BookingFormInner() {
       patientNames,
       isSundayBooking,
       sundayAdvanceAccepted,
-      ...(isSundayBooking && { advanceAmount: 299 }),
+      ...(isSundayBooking && { advanceAmount: 200 }),
     };
 
     try {
@@ -676,7 +676,7 @@ function BookingFormInner() {
               <div>
                 <p className="font-semibold text-orange-800">Sunday Booking</p>
                 <p className="text-sm text-orange-700 mt-1">
-                  Sunday bookings require a <span className="font-bold">non-refundable advance payment</span> of ₹299.
+                  Sunday bookings require a <span className="font-bold">non-refundable advance payment</span> of ₹200.
                   This advance is adjusted against your final invoice but will not be refunded if cancelled.
                 </p>
                 <label className="flex items-center gap-2 mt-3 cursor-pointer">
