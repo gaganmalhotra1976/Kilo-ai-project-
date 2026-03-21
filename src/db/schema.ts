@@ -19,6 +19,8 @@ export const customers = sqliteTable("customers", {
   password: text("password"), // For customer login
   address: text("address"),
   city: text("city").notNull().default("Delhi"),
+  pinCode: text("pin_code"), // PIN/ZIP code
+  landmark: text("landmark"), // Nearby landmark for easier navigation
   notes: text("notes"),
   pictureUrl: text("picture_url"), // Profile picture URL
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(

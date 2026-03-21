@@ -16,6 +16,8 @@ interface Customer {
   email: string | null;
   address: string | null;
   city: string;
+  pinCode: string | null;
+  landmark: string | null;
   pictureUrl: string | null;
 }
 
@@ -58,12 +60,16 @@ export function ProfileClient() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [locationError, setLocationError] = useState("");
   const [editForm, setEditForm] = useState({ 
     name: "", 
     phone: "", 
     email: "", 
     address: "", 
     city: "Delhi",
+    pinCode: "",
+    landmark: "",
     pictureUrl: ""
   });
   const [isSaving, setIsSaving] = useState(false);
@@ -86,10 +92,12 @@ export function ProfileClient() {
     setCustomer({
       id: parseInt(customerId),
       name: customerName,
-      phone: "", // Will be fetched if needed
+      phone: "",
       email: null,
       address: null,
       city: "Delhi",
+      pinCode: null,
+      landmark: null,
       pictureUrl: null,
     });
 
@@ -100,26 +108,32 @@ export function ProfileClient() {
       email: "",
       address: "",
       city: "Delhi",
+      pinCode: "",
+      landmark: "",
       pictureUrl: "",
     });
 
     // Try to fetch additional data from API (non-critical)
     async function loadAdditionalData() {
       try {
-        // Try to fetch customer details (may fail if no database)
-        const customerRes = await fetch(`/api/customers/${customerId}`);
+        // Use the new customer profile API
+        const customerRes = await fetch(`/api/customer/profile?customerId=${customerId}`);
         if (customerRes.ok) {
-          const customerData = await customerRes.json();
-          setCustomer(customerData);
-          // Update edit form with fetched data
-          setEditForm({
-            name: customerData.name || customerName,
-            phone: customerData.phone || "",
-            email: customerData.email || "",
-            address: customerData.address || "",
-            city: customerData.city || "Delhi",
-            pictureUrl: customerData.pictureUrl || "",
-          });
+          const data = await customerRes.json();
+          if (data.success && data.data) {
+            setCustomer(data.data);
+            // Update edit form with fetched data
+            setEditForm({
+              name: data.data.name || customerName,
+              phone: data.data.phone || "",
+              email: data.data.email || "",
+              address: data.data.address || "",
+              city: data.data.city || "Delhi",
+              pinCode: data.data.pinCode || "",
+              landmark: data.data.landmark || "",
+              pictureUrl: data.data.pictureUrl || "",
+            });
+          }
         }
       } catch (e) {
         console.log("Using basic profile data");
@@ -165,9 +179,72 @@ export function ProfileClient() {
         email: customer.email || "",
         address: customer.address || "",
         city: customer.city,
+        pinCode: customer.pinCode || "",
+        landmark: customer.landmark || "",
         pictureUrl: customer.pictureUrl || "",
       });
     }
+  };
+
+  // Auto-fetch GPS location
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setIsGettingLocation(true);
+    setLocationError("");
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        try {
+          // Use reverse geocoding to get address
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            const address = data.address || {};
+            
+            // Build address from components
+            const streetParts = [];
+            if (address.house_number) streetParts.push(address.house_number);
+            if (address.road) streetParts.push(address.road);
+            if (address.neighbourhood) streetParts.push(address.neighbourhood);
+            
+            const fullAddress = streetParts.join(", ") || data.display_name?.split(",").slice(0, 2).join(",") || "";
+            const city = address.city || address.town || address.state_district || "Delhi";
+            const pinCode = address.postcode || "";
+            const landmark = address.suburb || address.neighbourhood || "";
+            
+            setEditForm(prev => ({
+              ...prev,
+              address: fullAddress,
+              city: city,
+              pinCode: pinCode,
+              landmark: landmark,
+            }));
+          }
+        } catch (e) {
+          // Just use coordinates if geocoding fails
+          setEditForm(prev => ({
+            ...prev,
+            address: `Location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+          }));
+        }
+        
+        setIsGettingLocation(false);
+      },
+      (error) => {
+        setLocationError("Could not get your location. Please enter manually.");
+        setIsGettingLocation(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   const handleSaveProfile = async () => {
@@ -178,21 +255,25 @@ export function ProfileClient() {
     setSaveSuccess(false);
 
     try {
-      const response = await fetch(`/api/customers/${customer.id}`, {
+      const response = await fetch("/api/customer/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify({
+          customerId: customer.id,
+          ...editForm,
+        }),
       });
 
-      if (response.ok) {
-        const updatedCustomer = await response.json();
-        setCustomer(updatedCustomer);
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setCustomer(data.data);
         // Update localStorage with new name
         localStorage.setItem("customerName", editForm.name);
         setIsEditing(false);
         setSaveSuccess(true);
       } else {
-        setSaveError("Failed to update profile. Please try again.");
+        setSaveError(data.error || "Failed to update profile. Please try again.");
       }
     } catch (e) {
       setSaveError("Failed to update profile. Please try again.");
@@ -335,6 +416,36 @@ export function ProfileClient() {
                     placeholder="Enter email address"
                   />
                 </div>
+                
+                {/* GPS Location Button */}
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">Auto-detect Location</p>
+                      <p className="text-sm text-gray-500">Use GPS to fill address automatically</p>
+                    </div>
+                    <button
+                      onClick={handleGetLocation}
+                      disabled={isGettingLocation}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {isGettingLocation ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Getting...
+                        </>
+                      ) : (
+                        <>
+                          📍 Get Location
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  {locationError && (
+                    <p className="text-red-600 text-sm mt-2">{locationError}</p>
+                  )}
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
                   <textarea
@@ -342,16 +453,39 @@ export function ProfileClient() {
                     onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                     rows={3}
-                    placeholder="Enter your address"
+                    placeholder="House/Flat No., Street Name"
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input
+                      type="text"
+                      value={editForm.city}
+                      onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">PIN Code</label>
+                    <input
+                      type="text"
+                      value={editForm.pinCode}
+                      onChange={(e) => setEditForm({ ...editForm, pinCode: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                      placeholder="110001"
+                      maxLength={6}
+                    />
+                  </div>
+                </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Landmark</label>
                   <input
                     type="text"
-                    value={editForm.city}
-                    onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                    value={editForm.landmark}
+                    onChange={(e) => setEditForm({ ...editForm, landmark: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="Near Metro Station, Behind Temple, etc."
                   />
                 </div>
                 <div className="flex gap-3 pt-2">
@@ -403,6 +537,20 @@ export function ProfileClient() {
                 <div>
                   <label className="text-sm text-gray-500">Address</label>
                   <p className="text-gray-900">{customer.address || "Not provided"}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm text-gray-500">City</label>
+                    <p className="text-gray-900">{customer.city}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-500">PIN Code</label>
+                    <p className="text-gray-900">{customer.pinCode || "Not provided"}</p>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-500">Landmark</label>
+                  <p className="text-gray-900">{customer.landmark || "Not provided"}</p>
                 </div>
               </div>
             )}

@@ -30,6 +30,17 @@ interface FamilyMember {
   gender?: string | null;
 }
 
+interface CustomerProfile {
+  id: number;
+  name: string;
+  phone: string;
+  email: string | null;
+  address: string | null;
+  city: string;
+  pinCode: string | null;
+  landmark: string | null;
+}
+
 export default function BookingForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -43,6 +54,22 @@ export default function BookingForm() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerId, setCustomerId] = useState<string | null>(null);
+  const [customerProfile, setCustomerProfile] = useState<CustomerProfile | null>(null);
+
+  // Address change confirmation
+  const [showAddressConfirm, setShowAddressConfirm] = useState(false);
+  const [useDifferentAddress, setUseDifferentAddress] = useState(false);
+
+  // Form values (pre-filled from profile)
+  const [formValues, setFormValues] = useState({
+    customerName: "",
+    customerPhone: "",
+    customerEmail: "",
+    address: "",
+    city: "Delhi",
+    pinCode: "",
+    landmark: "",
+  });
 
   // Add family member inline form
   const [showAddMember, setShowAddMember] = useState(false);
@@ -52,7 +79,7 @@ export default function BookingForm() {
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-    const customerId = localStorage.getItem("customerId");
+    const custId = localStorage.getItem("customerId");
     const storedName = localStorage.getItem("customerName");
 
     if (!token) {
@@ -63,12 +90,37 @@ export default function BookingForm() {
 
     setIsLoggedIn(true);
     setCustomerName(storedName || "Myself");
-    setCustomerId(customerId);
+    setCustomerId(custId);
     setAuthChecking(false);
 
-    if (customerId) {
+    if (custId) {
+      // Fetch customer profile to auto-populate form
+      fetch(`/api/customer/profile?customerId=${custId}`)
+        .then((res) => res.ok ? res.json() : null)
+        .then((data) => {
+          if (data?.success && data.data) {
+            const profile = data.data;
+            setCustomerProfile(profile);
+            setFormValues({
+              customerName: profile.name || storedName || "",
+              customerPhone: profile.phone || "",
+              customerEmail: profile.email || "",
+              address: profile.address || "",
+              city: profile.city || "Delhi",
+              pinCode: profile.pinCode || "",
+              landmark: profile.landmark || "",
+            });
+            
+            // Show address confirmation if address exists
+            if (profile.address) {
+              setShowAddressConfirm(true);
+            }
+          }
+        })
+        .catch(() => console.log("Could not load profile"));
+
       // Fetch family members
-      fetch(`/api/family-members/customer/${customerId}`)
+      fetch(`/api/family-members/customer/${custId}`)
         .then((res) => (res.ok ? res.json() : []))
         .then((data: FamilyMember[]) => setFamilyMembers(data))
         .catch(() => setFamilyMembers([]));
@@ -189,6 +241,18 @@ export default function BookingForm() {
       onSubmit={handleSubmit}
       className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-6"
     >
+      {/* Profile data notice */}
+      {customerProfile && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+          <div className="flex items-center gap-2">
+            <span className="text-emerald-600">✓</span>
+            <p className="text-sm text-emerald-800">
+              <span className="font-medium">Using data from your profile.</span> You can edit fields below if needed.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Personal details */}
       <div>
         <h2 className="text-lg font-bold text-gray-900 mb-4">Your Details</h2>
@@ -201,6 +265,8 @@ export default function BookingForm() {
               name="customerName"
               type="text"
               required
+              value={formValues.customerName}
+              onChange={(e) => setFormValues({ ...formValues, customerName: e.target.value })}
               placeholder="Priya Sharma"
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
@@ -213,6 +279,8 @@ export default function BookingForm() {
               name="customerPhone"
               type="tel"
               required
+              value={formValues.customerPhone}
+              onChange={(e) => setFormValues({ ...formValues, customerPhone: e.target.value })}
               placeholder="+91 98765 43210"
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
@@ -224,6 +292,8 @@ export default function BookingForm() {
             <input
               name="customerEmail"
               type="email"
+              value={formValues.customerEmail}
+              onChange={(e) => setFormValues({ ...formValues, customerEmail: e.target.value })}
               placeholder="priya@example.com"
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
@@ -366,34 +436,111 @@ export default function BookingForm() {
       {/* Address */}
       <div>
         <h2 className="text-lg font-bold text-gray-900 mb-4">Visit Address</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Full Address <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              name="address"
-              required
-              rows={3}
-              placeholder="Flat 4B, Green Park Apartments, Sector 18..."
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
-            />
+        
+        {/* Address confirmation for existing users */}
+        {showAddressConfirm && formValues.address && (
+          <div className="mb-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <p className="text-sm font-medium text-blue-800 mb-2">Use your saved address?</p>
+            <div className="bg-white rounded-lg p-3 mb-3 text-sm">
+              <p className="font-medium">{formValues.address}</p>
+              <p className="text-gray-500">{formValues.city} - {formValues.pinCode || "N/A"}</p>
+              {formValues.landmark && <p className="text-gray-500">Near {formValues.landmark}</p>}
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setUseDifferentAddress(false);
+                  setShowAddressConfirm(false);
+                }}
+                className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Yes, use this address
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setUseDifferentAddress(true);
+                  setShowAddressConfirm(false);
+                  setFormValues({
+                    ...formValues,
+                    address: "",
+                    city: "Delhi",
+                    pinCode: "",
+                    landmark: "",
+                  });
+                }}
+                className="border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                No, use different address
+              </button>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              City <span className="text-red-500">*</span>
-            </label>
-            <select
-              name="city"
-              required
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-            >
-              <option value="Delhi">Delhi</option>
-              <option value="Noida">Noida</option>
-              <option value="Gurgaon">Gurgaon</option>
-            </select>
+        )}
+
+        {(!showAddressConfirm || useDifferentAddress) && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Full Address <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                name="address"
+                required
+                rows={3}
+                value={formValues.address}
+                onChange={(e) => setFormValues({ ...formValues, address: e.target.value })}
+                placeholder="Flat 4B, Green Park Apartments, Sector 18..."
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  City <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="city"
+                  required
+                  value={formValues.city}
+                  onChange={(e) => setFormValues({ ...formValues, city: e.target.value })}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                >
+                  <option value="Delhi">Delhi</option>
+                  <option value="Noida">Noida</option>
+                  <option value="Gurgaon">Gurgaon</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  PIN Code
+                </label>
+                <input
+                  type="text"
+                  name="pinCode"
+                  value={formValues.pinCode}
+                  onChange={(e) => setFormValues({ ...formValues, pinCode: e.target.value })}
+                  placeholder="110001"
+                  maxLength={6}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Landmark
+                </label>
+                <input
+                  type="text"
+                  name="landmark"
+                  value={formValues.landmark}
+                  onChange={(e) => setFormValues({ ...formValues, landmark: e.target.value })}
+                  placeholder="Near Metro Station"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Vaccines */}
