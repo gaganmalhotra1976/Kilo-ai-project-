@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+// Individual vaccines for ad-hoc selection
 const VACCINE_OPTIONS = [
   "Flu (Influenza)",
   "Hepatitis A",
@@ -23,6 +24,88 @@ const VACCINE_OPTIONS = [
   "Other (specify in notes)",
 ];
 
+// Schedule packages for babies / infants
+const SCHEDULE_PACKAGES = [
+  {
+    id: "6week",
+    label: "6 Week Package",
+    emoji: "👶",
+    subtitle: "Primary immunization begins",
+    duration: "6 weeks",
+    vaccines: [
+      "DPT + IPV + Hib + Hep B (Hexavalent) – 1st dose",
+      "OPV – 1st dose",
+      "Rotavirus – 1st dose",
+      "PCV (Pneumococcal) – 1st dose",
+    ],
+    priceRange: "₹4,500 – ₹6,000",
+  },
+  {
+    id: "10week",
+    label: "10 Week Package",
+    emoji: "🍼",
+    subtitle: "Second round of primary immunization",
+    duration: "10 weeks",
+    vaccines: [
+      "DPT + IPV + Hib + Hep B (Hexavalent) – 2nd dose",
+      "OPV – 2nd dose",
+      "Rotavirus – 2nd dose",
+      "PCV (Pneumococcal) – 2nd dose",
+    ],
+    priceRange: "₹4,500 – ₹6,000",
+  },
+  {
+    id: "14week",
+    label: "14 Week Package",
+    emoji: "🥛",
+    subtitle: "Third round of primary immunization",
+    duration: "14 weeks",
+    vaccines: [
+      "DPT + IPV + Hib + Hep B (Hexavalent) – 3rd dose",
+      "OPV – 3rd dose",
+      "Rotavirus – 3rd dose",
+      "PCV (Pneumococcal) – 3rd dose",
+    ],
+    priceRange: "₹4,500 – ₹6,000",
+  },
+  {
+    id: "1yr",
+    label: "1 Year Package",
+    emoji: "🎂",
+    subtitle: "First birthday boosters",
+    duration: "12 months",
+    vaccines: [
+      "MMR – 1st dose",
+      "Varicella (Chickenpox) – 1st dose",
+      "Hepatitis A – 1st dose",
+      "PCV (Pneumococcal) – Booster",
+      "Typhoid Conjugate – 1st dose",
+    ],
+    priceRange: "₹8,000 – ₹12,000",
+  },
+  {
+    id: "custom",
+    label: "Custom Package",
+    emoji: "🎯",
+    subtitle: "Pick any vaccines you need",
+    duration: "Flexible",
+    vaccines: [],
+    priceRange: "Varies",
+  },
+];
+
+// Pain level options
+const PAIN_OPTIONS = [
+  { id: "normal", label: "Normal", desc: "Standard vaccine formulation", icon: "💉" },
+  { id: "lowPain", label: "Low Pain / Pain-Free", desc: "Pre-filled syringes, reduced sting", icon: "🩹" },
+];
+
+// Package duration options
+const DURATION_OPTIONS = [
+  { id: "1year", label: "1 Year Plan", desc: "All doses within 12 months", icon: "📅" },
+  { id: "custom", label: "Custom Plan", desc: "Flexible scheduling as per your baby's needs", icon: "🔄" },
+];
+
 interface FamilyMember {
   id: number;
   name: string;
@@ -41,13 +124,30 @@ interface CustomerProfile {
   landmark: string | null;
 }
 
+interface Voucher {
+  id: number;
+  voucherCode: string;
+  patientName: string;
+  status: string;
+  voucherValue: number;
+  expiryDate: string;
+}
+
 function BookingFormInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Pre-select vaccines passed from home page via ?vaccine=X&vaccine=Y
+  // Booking mode: "schedule" (package) or "vaccines" (individual)
+  const [bookingMode, setBookingMode] = useState<"schedule" | "vaccines">("vaccines");
+
+  // Schedule package selection
+  const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
+  const [painLevel, setPainLevel] = useState<string>("normal");
+  const [packageDuration, setPackageDuration] = useState<string>("1year");
+
+  // Individual vaccine selection
   const preSelected = searchParams.getAll("vaccine");
   const [selectedVaccines, setSelectedVaccines] = useState<string[]>(
     preSelected.length > 0 ? preSelected : []
@@ -69,6 +169,12 @@ function BookingFormInner() {
   // Date selection (for Sunday detection)
   const [selectedDate, setSelectedDate] = useState("");
   const isSunday = selectedDate ? new Date(selectedDate).getDay() === 0 : false;
+
+  // Consultation preference
+  const [consultationPreference, setConsultationPreference] = useState<"include" | "discount" | "convert">("include");
+
+  // Available vouchers for conversion
+  const [availableVouchers, setAvailableVouchers] = useState<Voucher[]>([]);
 
   // Form values (pre-filled from profile)
   const [formValues, setFormValues] = useState({
@@ -93,7 +199,6 @@ function BookingFormInner() {
     const storedName = localStorage.getItem("customerName");
 
     if (!token) {
-      // Not logged in — redirect to login with return URL
       router.replace("/login?redirect=/book");
       return;
     }
@@ -104,7 +209,7 @@ function BookingFormInner() {
     setAuthChecking(false);
 
     if (custId) {
-      // Fetch customer profile to auto-populate form
+      // Fetch customer profile
       fetch(`/api/customer/profile?customerId=${custId}`)
         .then((res) => res.ok ? res.json() : null)
         .then((data) => {
@@ -120,8 +225,6 @@ function BookingFormInner() {
               pinCode: profile.pinCode || "",
               landmark: profile.landmark || "",
             });
-            
-            // Show address confirmation if address exists
             if (profile.address) {
               setShowAddressConfirm(true);
             }
@@ -134,6 +237,16 @@ function BookingFormInner() {
         .then((res) => (res.ok ? res.json() : []))
         .then((data: FamilyMember[]) => setFamilyMembers(data))
         .catch(() => setFamilyMembers([]));
+
+      // Fetch active consultation vouchers
+      fetch(`/api/consultation-vouchers?customerId=${custId}&status=active`)
+        .then((res) => res.ok ? res.json() : null)
+        .then((data) => {
+          if (data?.success && data.data?.vouchers) {
+            setAvailableVouchers(data.data.vouchers);
+          }
+        })
+        .catch(() => setAvailableVouchers([]));
     }
   }, [router]);
 
@@ -180,9 +293,17 @@ function BookingFormInner() {
     e.preventDefault();
     setError("");
 
-    if (selectedVaccines.length === 0) {
-      setError("Please select at least one vaccine.");
-      return;
+    // Validate selection based on booking mode
+    if (bookingMode === "schedule") {
+      if (!selectedPackage) {
+        setError("Please select a schedule package.");
+        return;
+      }
+    } else {
+      if (selectedVaccines.length === 0) {
+        setError("Please select at least one vaccine.");
+        return;
+      }
     }
 
     if (isLoggedIn && selectedPatients.length === 0) {
@@ -214,13 +335,31 @@ function BookingFormInner() {
       });
     }
 
+    // Build selected vaccines list based on mode
+    let vaccinesList: string[] = [];
+    if (bookingMode === "schedule" && selectedPackage) {
+      const pkg = SCHEDULE_PACKAGES.find((p) => p.id === selectedPackage);
+      if (pkg) {
+        vaccinesList = pkg.id === "custom" ? selectedVaccines : pkg.vaccines;
+      }
+    } else {
+      vaccinesList = selectedVaccines;
+    }
+
+    // Calculate voucher conversion discount (10% of total consultation value, max ₹100)
+    let voucherConversionDiscount = 0;
+    if (consultationPreference === "convert" && availableVouchers.length > 0) {
+      const totalVoucherValue = availableVouchers.reduce((sum, v) => sum + v.voucherValue, 0);
+      voucherConversionDiscount = Math.min(totalVoucherValue * 0.1, 100);
+    }
+
     const payload = {
       customerName: data.get("customerName") as string,
       customerPhone: data.get("customerPhone") as string,
       customerEmail: data.get("customerEmail") as string,
       address: data.get("address") as string,
       city: data.get("city") as string,
-      vaccinesRequested: selectedVaccines,
+      vaccinesRequested: vaccinesList,
       numberOfPeople: patientNames ? patientNames.length : (parseInt(data.get("numberOfPeople") as string, 10) || 1),
       bookingType: data.get("bookingType") as string,
       preferredDate: selectedDate,
@@ -229,6 +368,13 @@ function BookingFormInner() {
       isSundayBooking,
       sundayAdvanceAccepted,
       ...(isSundayBooking && { advanceAmount: 200 }),
+      // New fields
+      bookingMode,
+      selectedPackage: selectedPackage || null,
+      painLevel,
+      packageDuration,
+      consultationPreference,
+      voucherConversionDiscount,
     };
 
     try {
@@ -250,7 +396,7 @@ function BookingFormInner() {
     }
   }
 
-  // Show spinner while checking auth (avoids flash of form before redirect)
+  // Show spinner while checking auth
   if (authChecking) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -336,7 +482,7 @@ function BookingFormInner() {
         </div>
       </div>
 
-      {/* Who is this booking for? — shown only when logged in */}
+      {/* Who is this booking for? */}
       {isLoggedIn && (
         <div>
           <h2 className="text-lg font-bold text-gray-900 mb-1">
@@ -346,7 +492,6 @@ function BookingFormInner() {
             Select yourself and/or family members who need vaccination.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {/* Myself option */}
             <label
               className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors text-sm ${
                 selectedPatients.includes("myself")
@@ -366,7 +511,6 @@ function BookingFormInner() {
               </span>
             </label>
 
-            {/* Family members */}
             {familyMembers.map((member) => (
               <label
                 key={member.id}
@@ -392,10 +536,8 @@ function BookingFormInner() {
                 </span>
               </label>
             ))}
-
           </div>
 
-          {/* Add family member button + inline form */}
           <div className="mt-3">
             {!showAddMember ? (
               <button
@@ -408,9 +550,7 @@ function BookingFormInner() {
             ) : (
               <div className="border border-emerald-200 rounded-xl p-4 bg-emerald-50 space-y-3">
                 <p className="text-sm font-semibold text-emerald-800">Add a Family Member</p>
-                {addMemberError && (
-                  <p className="text-xs text-red-600">{addMemberError}</p>
-                )}
+                {addMemberError && <p className="text-xs text-red-600">{addMemberError}</p>}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">Name <span className="text-red-500">*</span></label>
@@ -471,8 +611,6 @@ function BookingFormInner() {
       {/* Address */}
       <div>
         <h2 className="text-lg font-bold text-gray-900 mb-4">Visit Address</h2>
-        
-        {/* Address confirmation for existing users */}
         {showAddressConfirm && formValues.address && (
           <div className="mb-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
             <p className="text-sm font-medium text-blue-800 mb-2">Use your saved address?</p>
@@ -484,27 +622,14 @@ function BookingFormInner() {
             <div className="flex gap-3">
               <button
                 type="button"
-                onClick={() => {
-                  setUseDifferentAddress(false);
-                  setShowAddressConfirm(false);
-                }}
+                onClick={() => { setUseDifferentAddress(false); setShowAddressConfirm(false); }}
                 className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Yes, use this address
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setUseDifferentAddress(true);
-                  setShowAddressConfirm(false);
-                  setFormValues({
-                    ...formValues,
-                    address: "",
-                    city: "Delhi",
-                    pinCode: "",
-                    landmark: "",
-                  });
-                }}
+                onClick={() => { setUseDifferentAddress(true); setShowAddressConfirm(false); setFormValues({ ...formValues, address: "", city: "Delhi", pinCode: "", landmark: "" }); }}
                 className="border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 No, use different address
@@ -547,9 +672,7 @@ function BookingFormInner() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  PIN Code
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">PIN Code</label>
                 <input
                   type="text"
                   name="pinCode"
@@ -561,9 +684,7 @@ function BookingFormInner() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Landmark
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Landmark</label>
                 <input
                   type="text"
                   name="landmark"
@@ -578,31 +699,312 @@ function BookingFormInner() {
         )}
       </div>
 
-      {/* Vaccines */}
+      {/* ═══════════════════════════════════════════════════════════
+          SCHEDULE PACKAGES / INDIVIDUAL VACCINES
+          ═══════════════════════════════════════════════════════════ */}
       <div>
         <h2 className="text-lg font-bold text-gray-900 mb-1">
-          Vaccines Required <span className="text-red-500">*</span>
+          Choose Your Vaccination Plan
         </h2>
-        <p className="text-gray-500 text-sm mb-4">Select all that apply. Not sure? Select &ldquo;Other&rdquo; and we&apos;ll advise.</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {VACCINE_OPTIONS.map((v) => (
-            <label
-              key={v}
-              className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors text-sm ${
-                selectedVaccines.includes(v)
-                  ? "border-emerald-500 bg-emerald-50 text-emerald-800 font-medium"
-                  : "border-gray-200 hover:border-emerald-300 text-gray-700"
+        <p className="text-gray-500 text-sm mb-4">
+          Select a pre-built schedule package or pick individual vaccines.
+        </p>
+
+        {/* Booking mode toggle */}
+        <div className="flex gap-2 mb-4">
+          <button
+            type="button"
+            onClick={() => setBookingMode("schedule")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              bookingMode === "schedule"
+                ? "bg-emerald-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            📦 Schedule Packages
+          </button>
+          <button
+            type="button"
+            onClick={() => setBookingMode("vaccines")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              bookingMode === "vaccines"
+                ? "bg-emerald-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            💉 Individual Vaccines
+          </button>
+        </div>
+
+        {bookingMode === "schedule" ? (
+          <div className="space-y-4">
+            {/* Package selection */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {SCHEDULE_PACKAGES.map((pkg) => (
+                <div
+                  key={pkg.id}
+                  onClick={() => setSelectedPackage(pkg.id)}
+                  className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
+                    selectedPackage === pkg.id
+                      ? "border-emerald-500 bg-emerald-50 shadow-md"
+                      : "border-gray-200 hover:border-emerald-300"
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">{pkg.emoji}</span>
+                      <div>
+                        <p className="font-bold text-gray-900">{pkg.label}</p>
+                        <p className="text-xs text-gray-500">{pkg.subtitle}</p>
+                      </div>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      selectedPackage === pkg.id ? "border-emerald-500 bg-emerald-500" : "border-gray-300"
+                    }`}>
+                      {selectedPackage === pkg.id && (
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  {pkg.vaccines.length > 0 && (
+                    <ul className="text-xs text-gray-600 space-y-0.5 mb-2">
+                      {pkg.vaccines.slice(0, 3).map((v, i) => (
+                        <li key={i} className="flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full flex-shrink-0" />
+                          {v}
+                        </li>
+                      ))}
+                      {pkg.vaccines.length > 3 && (
+                        <li className="text-emerald-600">+{pkg.vaccines.length - 3} more</li>
+                      )}
+                    </ul>
+                  )}
+                  <p className="text-xs font-semibold text-emerald-700">{pkg.priceRange}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Sub-options: Pain level & Duration */}
+            {selectedPackage && selectedPackage !== "custom" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Pain level */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Vaccine Type
+                  </label>
+                  <div className="space-y-2">
+                    {PAIN_OPTIONS.map((opt) => (
+                      <div
+                        key={opt.id}
+                        onClick={() => setPainLevel(opt.id)}
+                        className={`border rounded-lg p-3 cursor-pointer transition-all text-sm ${
+                          painLevel === opt.id
+                            ? "border-emerald-500 bg-emerald-50"
+                            : "border-gray-200 hover:border-emerald-300"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>{opt.icon}</span>
+                          <div>
+                            <p className="font-medium text-gray-900">{opt.label}</p>
+                            <p className="text-xs text-gray-500">{opt.desc}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Duration */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Package Duration
+                  </label>
+                  <div className="space-y-2">
+                    {DURATION_OPTIONS.map((opt) => (
+                      <div
+                        key={opt.id}
+                        onClick={() => setPackageDuration(opt.id)}
+                        className={`border rounded-lg p-3 cursor-pointer transition-all text-sm ${
+                          packageDuration === opt.id
+                            ? "border-emerald-500 bg-emerald-50"
+                            : "border-gray-200 hover:border-emerald-300"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>{opt.icon}</span>
+                          <div>
+                            <p className="font-medium text-gray-900">{opt.label}</p>
+                            <p className="text-xs text-gray-500">{opt.desc}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* If custom, show individual vaccine picker */}
+            {selectedPackage === "custom" && (
+              <div className="border border-gray-200 rounded-xl p-4">
+                <p className="text-sm font-medium text-gray-700 mb-3">Pick your vaccines:</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {VACCINE_OPTIONS.map((v) => (
+                    <label
+                      key={v}
+                      className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer text-sm transition-all ${
+                        selectedVaccines.includes(v)
+                          ? "border-emerald-500 bg-emerald-50"
+                          : "border-gray-200 hover:border-emerald-300"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="accent-emerald-600"
+                        checked={selectedVaccines.includes(v)}
+                        onChange={() => toggleVaccine(v)}
+                      />
+                      {v}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Individual vaccines grid */
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {VACCINE_OPTIONS.map((v) => (
+              <label
+                key={v}
+                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors text-sm ${
+                  selectedVaccines.includes(v)
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-800 font-medium"
+                    : "border-gray-200 hover:border-emerald-300 text-gray-700"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  className="accent-emerald-600"
+                  checked={selectedVaccines.includes(v)}
+                  onChange={() => toggleVaccine(v)}
+                />
+                {v}
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════
+          CONSULTATION PREFERENCE
+          ═══════════════════════════════════════════════════════════ */}
+      <div className="border border-gray-200 rounded-xl p-4">
+        <h2 className="text-base font-bold text-gray-900 mb-1">
+          🩺 Free Pediatrician Consultations
+        </h2>
+        <p className="text-gray-500 text-xs mb-4">
+          Every booking includes free pediatrician consultations. Choose your preference:
+        </p>
+
+        <div className="space-y-3">
+          {/* Option 1: Include consultations */}
+          <div
+            onClick={() => setConsultationPreference("include")}
+            className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
+              consultationPreference === "include"
+                ? "border-emerald-500 bg-emerald-50"
+                : "border-gray-200 hover:border-emerald-300"
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 ${
+                consultationPreference === "include" ? "border-emerald-500 bg-emerald-500" : "border-gray-300"
+              }`}>
+                {consultationPreference === "include" && (
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900">Include Free Consultations</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Get free pediatrician consultations as per your billing amount. Consultations are valid for 1 year.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Option 2: Opt out with discount */}
+          <div
+            onClick={() => setConsultationPreference("discount")}
+            className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
+              consultationPreference === "discount"
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-200 hover:border-blue-300"
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 ${
+                consultationPreference === "discount" ? "border-blue-500 bg-blue-500" : "border-gray-300"
+              }`}>
+                {consultationPreference === "discount" && (
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900">
+                  Opt Out — Get <span className="text-blue-600">2% Discount</span>
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Skip free consultations and get an instant 2% discount on your total bill.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Option 3: Convert vouchers to discount (only if vouchers available) */}
+          {availableVouchers.length > 0 && (
+            <div
+              onClick={() => setConsultationPreference("convert")}
+              className={`border-2 rounded-xl p-4 cursor-pointer transition-all ${
+                consultationPreference === "convert"
+                  ? "border-amber-500 bg-amber-50"
+                  : "border-gray-200 hover:border-amber-300"
               }`}
             >
-              <input
-                type="checkbox"
-                className="accent-emerald-600"
-                checked={selectedVaccines.includes(v)}
-                onChange={() => toggleVaccine(v)}
-              />
-              {v}
-            </label>
-          ))}
+              <div className="flex items-start gap-3">
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 ${
+                  consultationPreference === "convert" ? "border-amber-500 bg-amber-500" : "border-gray-300"
+                }`}>
+                  {consultationPreference === "convert" && (
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-900">
+                    Convert Vouchers — <span className="text-amber-600">Up to ₹100 Discount</span>
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Convert your {availableVouchers.length} available consultation voucher{availableVouchers.length > 1 ? "s" : ""} to a discount. You get 10% of the consultation value (max ₹100 per billing).
+                  </p>
+                  <div className="mt-2 bg-white rounded-lg p-2 border border-amber-200">
+                    <p className="text-xs text-amber-700 font-medium">
+                      💡 Vouchers: {availableVouchers.length} | Value: ₹{availableVouchers.reduce((s, v) => s + v.voucherValue, 0)} | Discount: ₹{Math.min(availableVouchers.reduce((s, v) => s + v.voucherValue, 0) * 0.1, 100)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -610,7 +1012,6 @@ function BookingFormInner() {
       <div>
         <h2 className="text-lg font-bold text-gray-900 mb-4">Booking Details</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Only show number of people if not logged in (when logged in, count is derived from selected patients) */}
           {!isLoggedIn && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
