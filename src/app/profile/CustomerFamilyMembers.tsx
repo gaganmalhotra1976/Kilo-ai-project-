@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { ProfilePictureUpload } from "./ProfilePictureUpload";
+import { useState, useRef } from "react";
 
 interface FamilyMember {
   id: number;
@@ -19,32 +18,95 @@ interface CustomerFamilyMembersProps {
   initialFamilyMembers: FamilyMember[];
 }
 
+const emptyForm = {
+  registrationNumber: "",
+  name: "",
+  dateOfBirth: "",
+  gender: "",
+  vaccineCardUrl: "",
+  pictureData: "",
+};
+
+function ImageUpload({
+  value,
+  onChange,
+  label,
+}: {
+  value: string;
+  onChange: (base64: string) => void;
+  label: string;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState("");
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError("Image must be less than 2MB");
+      return;
+    }
+    setError("");
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      // Strip the data URL prefix and keep only the base64 string
+      const result = reader.result as string;
+      const base64 = result.split(",")[1];
+      onChange(base64);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const imgSrc = value ? `data:image/jpeg;base64,${value}` : null;
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div
+        onClick={() => inputRef.current?.click()}
+        className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-emerald-500 transition-colors overflow-hidden"
+      >
+        {imgSrc ? (
+          <img src={imgSrc} alt={label} className="w-full h-full object-cover" />
+        ) : (
+          <div className="text-center text-gray-400">
+            <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span className="text-xs">Upload</span>
+          </div>
+        )}
+      </div>
+      <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFile} className="hidden" />
+      {error && <p className="text-red-500 text-xs">{error}</p>}
+      {value && (
+        <button type="button" onClick={() => onChange("")} className="text-red-500 text-xs hover:text-red-700">
+          Remove
+        </button>
+      )}
+      <span className="text-xs text-gray-500">{label}</span>
+    </div>
+  );
+}
+
 export function CustomerFamilyMembers({
   customerId,
   initialFamilyMembers,
 }: CustomerFamilyMembersProps) {
-  const [familyMembersList, setFamilyMembersList] =
-    useState<FamilyMember[]>(initialFamilyMembers);
+  const [familyMembersList, setFamilyMembersList] = useState<FamilyMember[]>(initialFamilyMembers);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Form state
-  const [formData, setFormData] = useState({
-    registrationNumber: "",
-    name: "",
-    dateOfBirth: "",
-    gender: "",
-    vaccineCardUrl: "",
-    pictureData: "",
-  });
+  const [formData, setFormData] = useState({ ...emptyForm });
 
   const handleAdd = async () => {
     if (!formData.name.trim()) {
       alert("Please enter a name");
       return;
     }
-
     setIsLoading(true);
     try {
       const response = await fetch("/api/family-members", {
@@ -52,25 +114,24 @@ export function CustomerFamilyMembers({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerId,
+          registrationNumber: formData.registrationNumber || null,
           name: formData.name,
           dateOfBirth: formData.dateOfBirth || null,
           gender: formData.gender || null,
           vaccineCardUrl: formData.vaccineCardUrl || null,
-          pictureUrl: formData.pictureUrl || null,
+          pictureData: formData.pictureData || null,
         }),
       });
-
       if (response.ok) {
-        const newFamilyMember = await response.json();
-        setFamilyMembersList([...familyMembersList, newFamilyMember]);
-        setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardUrl: "", pictureUrl: "" });
+        const newMember = await response.json();
+        setFamilyMembersList([...familyMembersList, newMember]);
+        setFormData({ ...emptyForm });
         setIsAdding(false);
       } else {
-        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-        alert(errorData.error || "Failed to add family member");
+        const err = await response.json().catch(() => ({ error: "Unknown error" }));
+        alert(err.error || "Failed to add family member");
       }
-    } catch (error) {
-      console.error("Error adding family member:", error);
+    } catch {
       alert("Network error. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
@@ -82,36 +143,30 @@ export function CustomerFamilyMembers({
       alert("Please enter a name");
       return;
     }
-
     setIsLoading(true);
     try {
       const response = await fetch(`/api/family-members/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          registrationNumber: formData.registrationNumber || null,
           name: formData.name,
           dateOfBirth: formData.dateOfBirth || null,
           gender: formData.gender || null,
           vaccineCardUrl: formData.vaccineCardUrl || null,
-          pictureUrl: formData.pictureUrl || null,
+          pictureData: formData.pictureData || null,
         }),
       });
-
       if (response.ok) {
-        const updatedFamilyMember = await response.json();
-        setFamilyMembersList(
-          familyMembersList.map((fm) =>
-            fm.id === id ? updatedFamilyMember : fm
-          )
-        );
-        setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardUrl: "", pictureUrl: "" });
+        const updated = await response.json();
+        setFamilyMembersList(familyMembersList.map((fm) => (fm.id === id ? updated : fm)));
+        setFormData({ ...emptyForm });
         setEditingId(null);
       } else {
-        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-        alert(errorData.error || "Failed to update family member");
+        const err = await response.json().catch(() => ({ error: "Unknown error" }));
+        alert(err.error || "Failed to update family member");
       }
-    } catch (error) {
-      console.error("Error updating family member:", error);
+    } catch {
       alert("Network error. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
@@ -119,26 +174,17 @@ export function CustomerFamilyMembers({
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this family member?")) {
-      return;
-    }
-
+    if (!confirm("Are you sure you want to delete this family member?")) return;
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/family-members/${id}`, {
-        method: "DELETE",
-      });
-
+      const response = await fetch(`/api/family-members/${id}`, { method: "DELETE" });
       if (response.ok) {
-        setFamilyMembersList(
-          familyMembersList.filter((fm) => fm.id !== id)
-        );
+        setFamilyMembersList(familyMembersList.filter((fm) => fm.id !== id));
       } else {
-        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
-        alert(errorData.error || "Failed to delete family member");
+        const err = await response.json().catch(() => ({ error: "Unknown error" }));
+        alert(err.error || "Failed to delete family member");
       }
-    } catch (error) {
-      console.error("Error deleting family member:", error);
+    } catch {
       alert("Network error. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
@@ -147,21 +193,91 @@ export function CustomerFamilyMembers({
 
   const startEdit = (member: FamilyMember) => {
     setFormData({
+      registrationNumber: member.registrationNumber || "",
       name: member.name,
       dateOfBirth: member.dateOfBirth || "",
       gender: member.gender || "",
       vaccineCardUrl: member.vaccineCardUrl || "",
-      pictureUrl: member.pictureUrl || "",
+      pictureData: member.pictureData || "",
     });
     setEditingId(member.id);
     setIsAdding(false);
   };
 
   const cancelForm = () => {
-    setFormData({ name: "", dateOfBirth: "", gender: "", vaccineCardUrl: "", pictureUrl: "" });
+    setFormData({ ...emptyForm });
     setIsAdding(false);
     setEditingId(null);
   };
+
+  const MemberForm = ({ onSave }: { onSave: () => void }) => (
+    <div className="space-y-3">
+      <div className="flex justify-center mb-4">
+        <ImageUpload
+          value={formData.pictureData}
+          onChange={(base64) => setFormData({ ...formData, pictureData: base64 })}
+          label="Photo (JPEG)"
+        />
+      </div>
+      <input
+        type="text"
+        placeholder="Registration Number (Aadhaar / PAN / Passport)"
+        value={formData.registrationNumber}
+        onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })}
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+      />
+      <input
+        type="text"
+        placeholder="Full Name *"
+        value={formData.name}
+        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+      />
+      <div className="grid grid-cols-2 gap-3">
+        <input
+          type="date"
+          value={formData.dateOfBirth}
+          onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+        />
+        <select
+          value={formData.gender}
+          onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm bg-white"
+        >
+          <option value="">Gender</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <input
+        type="text"
+        placeholder="Vaccine Card URL (optional)"
+        value={formData.vaccineCardUrl}
+        onChange={(e) => setFormData({ ...formData, vaccineCardUrl: e.target.value })}
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+      />
+      <div className="flex gap-2 pt-1">
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={isLoading}
+          className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 text-sm font-medium"
+        >
+          {isLoading ? "Saving…" : "Save"}
+        </button>
+        <button
+          type="button"
+          onClick={cancelForm}
+          disabled={isLoading}
+          className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
 
   if (familyMembersList.length === 0 && !isAdding) {
     return (
@@ -180,208 +296,63 @@ export function CustomerFamilyMembers({
   return (
     <div className="space-y-4">
       {familyMembersList.map((member) => (
-        <div
-          key={member.id}
-          className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-        >
+        <div key={member.id} className="border border-gray-200 rounded-xl p-4">
           {editingId === member.id ? (
-            <div className="space-y-4">
-              <div className="flex justify-center mb-4">
-                <ProfilePictureUpload
-                  currentImage={formData.pictureUrl}
-                  onImageChange={(url) => setFormData({ ...formData, pictureUrl: url })}
-                  label="Family Member Photo"
-                  size="md"
-                />
+            <div>
+              <p className="font-semibold text-gray-700 mb-3">Editing: {member.name}</p>
+              <MemberForm onSave={() => handleEdit(member.id)} />
+            </div>
+          ) : (
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                {member.pictureData ? (
+                  <img
+                    src={`data:image/jpeg;base64,${member.pictureData}`}
+                    alt={member.name}
+                    className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                    <span className="text-emerald-600 text-xl font-bold">
+                      {member.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-semibold text-gray-900">{member.name}</h3>
+                  <div className="text-sm text-gray-500 space-y-0.5 mt-1">
+                    {member.registrationNumber && (
+                      <p>Reg No: <span className="font-medium text-gray-700">{member.registrationNumber}</span></p>
+                    )}
+                    {member.dateOfBirth && (
+                      <p>DOB: {new Date(member.dateOfBirth).toLocaleDateString("en-IN")}</p>
+                    )}
+                    {member.gender && <p>Gender: {member.gender}</p>}
+                    {member.vaccineCardUrl && (
+                      <a href={member.vaccineCardUrl} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline">
+                        View Vaccine Card
+                      </a>
+                    )}
+                  </div>
+                </div>
               </div>
-              <input
-                type="text"
-                placeholder="Name *"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              />
-              <input
-                type="date"
-                placeholder="Date of Birth"
-                value={formData.dateOfBirth}
-                onChange={(e) =>
-                  setFormData({ ...formData, dateOfBirth: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              />
-              <select
-                value={formData.gender}
-                onChange={(e) =>
-                  setFormData({ ...formData, gender: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              >
-                <option value="">Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-              <input
-                type="text"
-                placeholder="Vaccine Card URL"
-                value={formData.vaccineCardUrl}
-                onChange={(e) =>
-                  setFormData({ ...formData, vaccineCardUrl: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleEdit(member.id)}
-                  disabled={isLoading}
-                  className="bg-emerald-600 text-white px-3 py-2 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
-                >
-                  Save
+              <div className="flex gap-3 flex-shrink-0">
+                <button onClick={() => startEdit(member)} className="text-emerald-600 hover:text-emerald-700 text-sm font-medium">
+                  Edit
                 </button>
-                <button
-                  onClick={cancelForm}
-                  disabled={isLoading}
-                  className="bg-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-400 transition-colors disabled:opacity-50"
-                >
-                  Cancel
+                <button onClick={() => handleDelete(member.id)} className="text-red-500 hover:text-red-700 text-sm font-medium">
+                  Delete
                 </button>
               </div>
             </div>
-           ) : (
-             <div>
-               <div className="flex items-start justify-between">
-                 <div className="flex items-start gap-4">
-                   {member.pictureData ? (
-                     <img
-                       src={`data:image/jpeg;base64,${member.pictureData}`}
-                       alt={member.name}
-                       className="w-16 h-16 rounded-full object-cover"
-                     />
-                   ) : (
-                     <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-                       <span className="text-gray-500 text-xl font-medium">
-                         {member.name.charAt(0).toUpperCase()}
-                       </span>
-                     </div>
-                   )}
-                   <div>
-                     <h3 className="font-semibold text-gray-900">{member.name}</h3>
-                     <div className="text-sm text-gray-500 space-y-1 mt-2">
-                       {member.dateOfBirth && (
-                         <p>
-                           DOB:{" "}
-                           {new Date(member.dateOfBirth).toLocaleDateString("en-IN")}
-                         </p>
-                       )}
-                       {member.gender && <p>Gender: {member.gender}</p>}
-                       {member.vaccineCardUrl && (
-                         <p>
-                           Vaccine Card:{" "}
-                           <a
-                             href={member.vaccineCardUrl}
-                             target="_blank"
-                             rel="noopener noreferrer"
-                             className="text-emerald-600 hover:underline"
-                           >
-                             View
-                           </a>
-                         </p>
-                       )}
-                     </div>
-                   </div>
-                 </div>
-                 <div className="flex gap-2">
-                   <button
-                     onClick={() => startEdit(member)}
-                     className="text-emerald-600 hover:text-emerald-700 text-sm"
-                   >
-                     Edit
-                   </button>
-                   <button
-                     onClick={() => handleDelete(member.id)}
-                     className="text-red-600 hover:text-red-700 text-sm"
-                   >
-                     Delete
-                   </button>
-                 </div>
-               </div>
-             </div>
-           )}
+          )}
         </div>
       ))}
 
       {isAdding && (
-        <div className="border border-emerald-300 rounded-lg p-4 bg-emerald-50 space-y-4">
-          <h3 className="font-semibold text-gray-900">Add New Family Member</h3>
-          <div className="flex justify-center mb-4">
-            <ProfilePictureUpload
-              currentImage={formData.pictureData}
-              onImageChange={(data) => setFormData({ ...formData, pictureData: data })}
-              label="Family Member Photo"
-              size="md"
-            />
-          </div>
-          <input
-            type="text"
-            placeholder="Registration Number (Aadhaar/PAN/etc)"
-            value={formData.registrationNumber}
-            onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-          />
-          <input
-            type="text"
-            placeholder="Name *"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-          />
-          <input
-            type="date"
-            placeholder="Date of Birth"
-            value={formData.dateOfBirth}
-            onChange={(e) =>
-              setFormData({ ...formData, dateOfBirth: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-          />
-          <select
-            value={formData.gender}
-            onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-          >
-            <option value="">Select Gender</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Vaccine Card URL"
-            value={formData.vaccineCardUrl}
-            onChange={(e) =>
-              setFormData({ ...formData, vaccineCardUrl: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-          />
-          <div className="flex gap-2">
-            <button
-              onClick={handleAdd}
-              disabled={isLoading}
-              className="bg-emerald-600 text-white px-3 py-2 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
-            >
-              Add Family Member
-            </button>
-            <button
-              onClick={cancelForm}
-              disabled={isLoading}
-              className="bg-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-400 transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
+        <div className="border border-emerald-300 rounded-xl p-4 bg-emerald-50">
+          <h3 className="font-semibold text-gray-900 mb-4">Add New Family Member</h3>
+          <MemberForm onSave={handleAdd} />
         </div>
       )}
 

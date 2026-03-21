@@ -18,16 +18,17 @@ interface Customer {
   city: string;
   pinCode: string | null;
   landmark: string | null;
-  pictureUrl: string | null;
+  pictureData: string | null;
 }
 
 interface FamilyMember {
   id: number;
   customerId: number;
+  registrationNumber: string | null;
   name: string;
   dateOfBirth: string | null;
   gender: string | null;
-  pictureUrl: string | null;
+  pictureData: string | null;
   vaccineCardUrl: string | null;
 }
 
@@ -70,7 +71,7 @@ export function ProfileClient() {
     city: "Delhi",
     pinCode: "",
     landmark: "",
-    pictureUrl: ""
+    pictureData: ""
   });
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -98,7 +99,7 @@ export function ProfileClient() {
       city: "Delhi",
       pinCode: null,
       landmark: null,
-      pictureUrl: null,
+      pictureData: null,
     });
 
     // Initialize edit form
@@ -110,7 +111,7 @@ export function ProfileClient() {
       city: "Delhi",
       pinCode: "",
       landmark: "",
-      pictureUrl: "",
+      pictureData: "",
     });
 
     // Try to fetch additional data from API (non-critical)
@@ -131,7 +132,7 @@ export function ProfileClient() {
               city: data.data.city || "Delhi",
               pinCode: data.data.pinCode || "",
               landmark: data.data.landmark || "",
-              pictureUrl: data.data.pictureUrl || "",
+              pictureData: data.data.pictureData || "",
             });
           }
         }
@@ -181,7 +182,7 @@ export function ProfileClient() {
         city: customer.city,
         pinCode: customer.pinCode || "",
         landmark: customer.landmark || "",
-        pictureUrl: customer.pictureUrl || "",
+        pictureData: customer.pictureData || "",
       });
     }
   };
@@ -283,9 +284,9 @@ export function ProfileClient() {
   };
 
   const handleProfilePictureChange = (url: string) => {
-    setEditForm({ ...editForm, pictureUrl: url });
+    setEditForm({ ...editForm, pictureData: url });
     if (customer) {
-      setCustomer({ ...customer, pictureUrl: url });
+      setCustomer({ ...customer, pictureData: url });
     }
   };
 
@@ -381,7 +382,7 @@ export function ProfileClient() {
               <div className="space-y-4">
                 <div className="flex justify-center mb-4">
                   <ProfilePictureUpload
-                    currentImage={editForm.pictureUrl}
+                    currentImage={editForm.pictureData}
                     onImageChange={handleProfilePictureChange}
                     label="Profile Picture"
                     size="lg"
@@ -508,9 +509,9 @@ export function ProfileClient() {
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center gap-4 mb-4">
-                  {customer.pictureUrl ? (
+                  {customer.pictureData ? (
                     <img
-                      src={customer.pictureUrl}
+                      src={`data:image/jpeg;base64,${customer.pictureData}`}
                       alt={customer.name}
                       className="w-20 h-20 rounded-full object-cover"
                     />
