@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 interface NavItem {
   label: string;
@@ -13,11 +13,15 @@ interface NavItem {
 
 export default function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Only show logo text on home page, show only emoji elsewhere
+  const isHomePage = pathname === "/";
 
   // Check auth state from localStorage
   useEffect(() => {
@@ -78,10 +82,12 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-1.5 md:gap-2 font-extrabold text-emerald-700 hover:opacity-90 transition-opacity min-w-0">
             <span className="text-2xl flex-shrink-0">🐼</span>
-            <span className="text-sm md:text-base truncate">
-              <span className="hidden sm:inline">The Vaccine Panda</span>
-              <span className="sm:hidden">Vaccine Panda</span>
-            </span>
+            {isHomePage && (
+              <span className="text-sm md:text-base truncate">
+                <span className="hidden sm:inline">The Vaccine Panda</span>
+                <span className="sm:hidden">Vaccine Panda</span>
+              </span>
+            )}
           </Link>
 
           {/* Desktop Navigation */}
