@@ -1083,6 +1083,7 @@ function BookingFormInner() {
               onChange={(e) => setSelectedDate(e.target.value)}
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
+            <p className="text-xs text-gray-400 mt-1">* Subject to availability</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
