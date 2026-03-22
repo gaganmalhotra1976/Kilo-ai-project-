@@ -171,6 +171,9 @@ function BookingFormInner() {
   const [selectedDate, setSelectedDate] = useState("");
   const isSunday = selectedDate ? new Date(selectedDate).getDay() === 0 : false;
 
+  // Preferred time (for premium slot detection)
+  const [preferredTime, setPreferredTime] = useState("");
+
   // Consultation preference
   const [consultationPreference, setConsultationPreference] = useState<"include" | "discount" | "convert">("include");
 
@@ -347,6 +350,18 @@ function BookingFormInner() {
 
     setLoading(true);
     const data = new FormData(formEl);
+
+    // Premium slot validation (after data is defined)
+    const preferredTime = (data.get("preferredTime") as string) || "";
+    const isPremiumSlot = preferredTime === "premium-1hr";
+    const premiumCheckbox = formEl.querySelector<HTMLInputElement>('input[name="premiumAccepted"]');
+    const premiumAccepted = premiumCheckbox?.checked ?? false;
+
+    if (isPremiumSlot && !premiumAccepted) {
+      setLoading(false);
+      setError("Please accept the full prepayment requirement for the premium slot.");
+      return;
+    }
 
     // Build patient names list
     let patientNames: string[] | null = null;
@@ -1107,11 +1122,14 @@ function BookingFormInner() {
             </label>
             <select
               name="preferredTime"
+              value={preferredTime}
+              onChange={(e) => setPreferredTime(e.target.value)}
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
             >
               <option value="">Any time</option>
               <option value="12pm-4pm">12 PM – 4 PM</option>
               <option value="4pm-7pm">4 PM – 7 PM</option>
+              <option value="premium-1hr">★ Premium Fixed 1 Hour Slot (+₹200, Full Prepayment)</option>
             </select>
           </div>
         </div>
@@ -1134,6 +1152,30 @@ function BookingFormInner() {
                     className="accent-orange-600 w-4 h-4"
                   />
                   <span className="text-sm text-orange-800 font-medium">I accept the non-refundable Sunday advance</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Premium slot notice */}
+        {preferredTime === "premium-1hr" && (
+          <div className="mt-4 bg-purple-50 border border-purple-200 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <span className="text-xl mt-0.5">★</span>
+              <div>
+                <p className="font-semibold text-purple-800">Premium Fixed 1 Hour Slot</p>
+                <p className="text-sm text-purple-700 mt-1">
+                  This option requires <span className="font-bold">full prepayment</span> of ₹200 extra.
+                  You will receive a dedicated 1-hour time slot for your appointment.
+                </p>
+                <label className="flex items-center gap-2 mt-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="premiumAccepted"
+                    className="accent-purple-600 w-4 h-4"
+                  />
+                  <span className="text-sm text-purple-800 font-medium">I accept full prepayment for premium slot</span>
                 </label>
               </div>
             </div>
