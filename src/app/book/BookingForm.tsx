@@ -81,7 +81,7 @@ const SCHEDULE_PACKAGES = [
       "PCV (Pneumococcal) – Booster",
       "Typhoid Conjugate – 1st dose",
     ],
-    priceRange: "₹8,000 – ₹12,000",
+    priceRange: "On Request",
   },
   {
     id: "custom",
