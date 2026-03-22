@@ -80,10 +80,10 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4">
         <div className="flex items-center justify-between h-14 md:h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-1.5 md:gap-2 font-extrabold text-emerald-700 hover:opacity-90 transition-opacity min-w-0">
+          <Link href="/" className="flex items-center gap-1.5 md:gap-2 font-extrabold text-emerald-700 hover:opacity-90 transition-opacity">
             <span className="text-2xl flex-shrink-0">🐼</span>
             {isHomePage && (
-              <span className="text-sm md:text-base truncate">
+              <span className="text-sm md:text-base whitespace-nowrap">
                 <span className="hidden sm:inline">The Vaccine Panda</span>
                 <span className="sm:hidden">Vaccine Panda</span>
               </span>
