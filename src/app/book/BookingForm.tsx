@@ -1056,7 +1056,7 @@ function BookingFormInner() {
                     Convert Vouchers — <span className="text-amber-600">Up to ₹100 Discount</span>
                   </p>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Convert your {availableVouchers.length} available consultation voucher{availableVouchers.length > 1 ? "s" : ""} to a discount. You get 10% of the consultation value (max ₹100 per billing).
+                    Convert your {availableVouchers.length} available consultation voucher{availableVouchers.length > 1 ? "s" : ""} to a discount. 10% of ₹500 = ₹50 per voucher, max ₹100 per booking.
                   </p>
                   <div className="mt-2 bg-white rounded-lg p-2 border border-amber-200">
                     <p className="text-xs text-amber-700 font-medium">
