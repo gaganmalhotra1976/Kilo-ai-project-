@@ -281,7 +281,7 @@ function BookingFormInner() {
     setAddMemberLoading(true);
     setAddMemberError("");
     try {
-      const res = await fetch("/api/family-members", {
+      const res = await fetch(`/api/family-members`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...newMember, customerId: parseInt(customerId!) }),
