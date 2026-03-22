@@ -38,7 +38,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await req.json();
-    const { status, lineItems, convenienceFee, discountType, discountValue, discountAmount, subtotal, gstAmount, total, validUntil } = body;
+    const { status, lineItems, convenienceFee, discountType, discountValue, discountAmount, additionalChargeType, additionalChargeValue, additionalChargeDescription, additionalChargeAmount, subtotal, gstAmount, total, validUntil } = body;
 
     const updateData: Partial<typeof quotes.$inferInsert> = {};
 
@@ -60,6 +60,10 @@ export async function PATCH(
       updateData.discountType = discountType;
       updateData.discountValue = discountValue ?? 0;
       updateData.discountAmount = discountAmount ?? 0;
+      updateData.additionalChargeType = additionalChargeType;
+      updateData.additionalChargeValue = additionalChargeValue ?? 0;
+      updateData.additionalChargeDescription = additionalChargeDescription;
+      updateData.additionalChargeAmount = additionalChargeAmount ?? 0;
       updateData.subtotal = subtotal ?? 0;
       updateData.gstAmount = gstAmount ?? 0;
       updateData.total = total ?? 0;

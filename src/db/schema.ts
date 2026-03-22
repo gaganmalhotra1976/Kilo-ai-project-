@@ -72,6 +72,10 @@ export const quotes = sqliteTable("quotes", {
   discountAmount: real("discount_amount").notNull().default(0),
   freeConsultations: integer("free_consultations").notNull().default(0), // Number of free consultations included
   freeConsultationsValue: real("free_consultations_value").notNull().default(0), // Total value (consultations × 500)
+  additionalChargeType: text("additional_charge_type"), // percentage | flat | null
+  additionalChargeValue: real("additional_charge_value").notNull().default(0),
+  additionalChargeDescription: text("additional_charge_description"),
+  additionalChargeAmount: real("additional_charge_amount").notNull().default(0),
   gstAmount: real("gst_amount").notNull(),
   total: real("total").notNull(),
   validUntil: text("valid_until"), // ISO date

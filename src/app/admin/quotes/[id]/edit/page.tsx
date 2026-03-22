@@ -45,6 +45,9 @@ export default function QuoteEditPage({
   const [convenienceFee, setConvenienceFee] = useState(0);
   const [discountType, setDiscountType] = useState<string>("");
   const [discountValue, setDiscountValue] = useState(0);
+  const [additionalChargeType, setAdditionalChargeType] = useState<string>("");
+  const [additionalChargeValue, setAdditionalChargeValue] = useState(0);
+  const [additionalChargeDescription, setAdditionalChargeDescription] = useState("");
   const [validUntil, setValidUntil] = useState("");
 
   useEffect(() => {
@@ -100,6 +103,14 @@ export default function QuoteEditPage({
   
   const afterDiscount = subtotal - discountAmount;
   
+  // Additional charge calculation
+  let additionalChargeAmount = 0;
+  if (additionalChargeType === "percentage") {
+    additionalChargeAmount = (afterDiscount * additionalChargeValue) / 100;
+  } else if (additionalChargeType === "flat") {
+    additionalChargeAmount = additionalChargeValue;
+  }
+  
   const gstAmount = lineItems.reduce(
     (sum, item) => {
       const itemTotal = item.qty * item.unitPrice;
@@ -111,7 +122,7 @@ export default function QuoteEditPage({
     0
   );
   
-  const total = afterDiscount;
+  const total = afterDiscount + additionalChargeAmount;
 
   async function saveQuote() {
     if (lineItems.some((l) => !l.vaccine || l.unitPrice <= 0)) {
@@ -130,6 +141,10 @@ export default function QuoteEditPage({
         discountType: discountType || null,
         discountValue,
         discountAmount,
+        additionalChargeType: additionalChargeType || null,
+        additionalChargeValue,
+        additionalChargeDescription: additionalChargeDescription || null,
+        additionalChargeAmount,
         subtotal,
         gstAmount,
         total,
@@ -307,6 +322,42 @@ export default function QuoteEditPage({
             />
           </div>
 
+          {/* Additional Charge */}
+          <div className="border-t border-gray-200 pt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Additional Charges</label>
+            <div className="flex flex-wrap gap-2 items-center">
+              <input
+                type="text"
+                placeholder="Description (e.g., Card Payment Charge)"
+                value={additionalChargeDescription}
+                onChange={(e) => setAdditionalChargeDescription(e.target.value)}
+                className="flex-1 min-w-[200px] border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              />
+              <select
+                value={additionalChargeType}
+                onChange={(e) => setAdditionalChargeType(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 bg-white"
+              >
+                <option value="">No Charge</option>
+                <option value="percentage">Percentage (%)</option>
+                <option value="flat">Flat (₹)</option>
+              </select>
+              {additionalChargeType && (
+                <input
+                  type="number"
+                  min={0}
+                  placeholder={additionalChargeType === "percentage" ? "%" : "₹"}
+                  value={additionalChargeValue || ""}
+                  onChange={(e) => setAdditionalChargeValue(parseFloat(e.target.value) || 0)}
+                  className="w-28 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+              )}
+            </div>
+            {additionalChargeAmount > 0 && (
+              <p className="text-xs text-gray-500 mt-1">Charge amount: ₹{additionalChargeAmount.toFixed(2)}</p>
+            )}
+          </div>
+
           <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-1">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
@@ -316,6 +367,12 @@ export default function QuoteEditPage({
               <div className="flex justify-between text-gray-600">
                 <span>Discount ({discountType === "percentage" ? `${discountValue}%` : "Flat"})</span>
                 <span>-₹{discountAmount.toFixed(2)}</span>
+              </div>
+            )}
+            {additionalChargeAmount > 0 && (
+              <div className="flex justify-between text-gray-600">
+                <span>{additionalChargeDescription || "Additional Charge"} ({additionalChargeType === "percentage" ? `${additionalChargeValue}%` : "Flat"})</span>
+                <span>+₹{additionalChargeAmount.toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between text-gray-600">
