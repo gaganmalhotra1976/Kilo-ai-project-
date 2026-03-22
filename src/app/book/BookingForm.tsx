@@ -237,10 +237,13 @@ function BookingFormInner() {
         })
         .catch(() => console.log("Could not load profile"));
 
-      // Fetch family members
-      fetch(`/api/family-members/customer/${custId}`)
-        .then((res) => (res.ok ? res.json() : []))
-        .then((data: FamilyMember[]) => setFamilyMembers(data))
+      // Fetch family members via new self-service endpoint
+      fetch(`/api/customer/family?customerId=${custId}`)
+        .then((res) => (res.ok ? res.json() : { data: [] }))
+        .then((json) => {
+          const members = json.success ? json.data : (Array.isArray(json) ? json : []);
+          setFamilyMembers(members);
+        })
         .catch(() => setFamilyMembers([]));
 
       // Fetch active consultation vouchers
@@ -281,20 +284,27 @@ function BookingFormInner() {
     setAddMemberLoading(true);
     setAddMemberError("");
     try {
-      const res = await fetch(`/api/family-members`, {
+      // Use the new /api/customer/family endpoint (self-service, no admin auth)
+      const res = await fetch("/api/customer/family", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...newMember, customerId: parseInt(customerId!) }),
+        body: JSON.stringify({
+          customerId: parseInt(customerId),
+          name: newMember.name.trim(),
+          dateOfBirth: newMember.dateOfBirth || null,
+          gender: newMember.gender || null,
+        }),
       });
       const json = await res.json();
-      if (!res.ok) {
+      if (!res.ok || !json.success) {
         throw new Error(json.error || "Failed to add member");
       }
-      const added: FamilyMember = json;
+      const added: FamilyMember = json.data;
       setFamilyMembers((prev) => [...prev, added]);
       setSelectedPatients((prev) => [...prev, String(added.id)]);
       setNewMember({ name: "", dateOfBirth: "", gender: "" });
       setShowAddMember(false);
+      setAddMemberError("");
     } catch (err) {
       setAddMemberError(err instanceof Error ? err.message : "Failed to add member");
     } finally {
