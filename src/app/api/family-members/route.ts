@@ -14,16 +14,25 @@ export async function POST(request: Request) {
       );
     }
 
+    const customerIdNum = typeof customerId === "string" ? parseInt(customerId) : customerId;
+
+    if (isNaN(customerIdNum)) {
+      return NextResponse.json(
+        { error: "Invalid customer ID" },
+        { status: 400 }
+      );
+    }
+
     const newFamilyMember = await db
       .insert(familyMembers)
       .values({
-        customerId,
-        registrationNumber,
+        customerId: customerIdNum,
+        registrationNumber: registrationNumber || null,
         name,
-        dateOfBirth,
-        gender,
-        vaccineCardData,
-        pictureData,
+        dateOfBirth: dateOfBirth || null,
+        gender: gender || null,
+        vaccineCardData: vaccineCardData || null,
+        pictureData: pictureData || null,
       })
       .returning();
 
