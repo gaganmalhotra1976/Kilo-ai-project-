@@ -284,7 +284,7 @@ function BookingFormInner() {
       const res = await fetch("/api/family-members", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...newMember, customerId: parseInt(customerId) }),
+        body: JSON.stringify({ ...newMember, customerId: parseInt(customerId!) }),
       });
       const json = await res.json();
       if (!res.ok) {
