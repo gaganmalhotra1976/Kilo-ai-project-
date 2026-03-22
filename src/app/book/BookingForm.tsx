@@ -38,7 +38,7 @@ const SCHEDULE_PACKAGES = [
       "Rotavirus – 1st dose",
       "PCV (Pneumococcal) – 1st dose",
     ],
-    priceRange: "₹4,500 – ₹6,400",
+    priceRange: "₹5,400 – ₹6,400",
   },
   {
     id: "10week",
@@ -52,7 +52,7 @@ const SCHEDULE_PACKAGES = [
       "Rotavirus – 2nd dose",
       "PCV (Pneumococcal) – 2nd dose",
     ],
-    priceRange: "₹4,500 – ₹6,400",
+    priceRange: "₹5,400 – ₹6,400",
   },
   {
     id: "14week",
@@ -66,7 +66,7 @@ const SCHEDULE_PACKAGES = [
       "Rotavirus – 3rd dose",
       "PCV (Pneumococcal) – 3rd dose",
     ],
-    priceRange: "₹4,500 – ₹6,400",
+    priceRange: "₹5,400 – ₹6,400",
   },
   {
     id: "1yr",
