@@ -100,12 +100,6 @@ const PAIN_OPTIONS = [
   { id: "lowPain", label: "Low Pain / Pain-Free", desc: "Pre-filled syringes, reduced sting", icon: "🩹" },
 ];
 
-// Package duration options
-const DURATION_OPTIONS = [
-  { id: "1year", label: "1 Year Plan", desc: "All doses within 12 months", icon: "📅" },
-  { id: "custom", label: "Custom Plan", desc: "Flexible scheduling as per your baby's needs", icon: "🔄" },
-];
-
 interface FamilyMember {
   id: number;
   name: string;
@@ -145,7 +139,7 @@ function BookingFormInner() {
   // Schedule package selection
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [painLevel, setPainLevel] = useState<string>("normal");
-  const [packageDuration, setPackageDuration] = useState<string>("1year");
+  const [packageDuration] = useState<string>("1year");
 
   // Individual vaccine selection
   const preSelected = searchParams.getAll("vaccine");
@@ -879,33 +873,7 @@ function BookingFormInner() {
                   </div>
                 </div>
 
-                {/* Duration */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Package Duration
-                  </label>
-                  <div className="space-y-2">
-                    {DURATION_OPTIONS.map((opt) => (
-                      <div
-                        key={opt.id}
-                        onClick={() => setPackageDuration(opt.id)}
-                        className={`border rounded-lg p-3 cursor-pointer transition-all text-sm ${
-                          packageDuration === opt.id
-                            ? "border-emerald-500 bg-emerald-50"
-                            : "border-gray-200 hover:border-emerald-300"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span>{opt.icon}</span>
-                          <div>
-                            <p className="font-medium text-gray-900">{opt.label}</p>
-                            <p className="text-xs text-gray-500">{opt.desc}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+
               </div>
             )}
 
