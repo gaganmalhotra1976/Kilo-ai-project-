@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { customerId, name, dateOfBirth, gender, vaccineCardData, pictureData, registrationNumber } = body;
+    const { customerId, name, dateOfBirth, gender, vaccineCardUrl } = body;
 
     if (!customerId || !name) {
       return NextResponse.json(
@@ -38,16 +38,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const customerIdNum = typeof customerId === "string" ? parseInt(customerId) : customerId;
+
     const newFamilyMember = await db
       .insert(familyMembers)
       .values({
-        customerId: typeof customerId === "string" ? parseInt(customerId) : customerId,
-        registrationNumber: registrationNumber || null,
+        customerId: customerIdNum,
         name,
         dateOfBirth: dateOfBirth || null,
         gender: gender || null,
-        vaccineCardData: vaccineCardData || null,
-        pictureData: pictureData || null,
+        vaccineCardUrl: vaccineCardUrl || null,
       })
       .returning();
 

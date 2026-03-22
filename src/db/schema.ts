@@ -114,12 +114,10 @@ export const familyMembers = sqliteTable("family_members", {
   customerId: integer("customer_id")
     .notNull()
     .references(() => customers.id),
-  registrationNumber: text("registration_number"), // Family member registration number (e.g., Aadhaar, PAN, etc.)
   name: text("name").notNull(),
   dateOfBirth: text("date_of_birth"), // ISO date string
   gender: text("gender"), // male | female | other
-  vaccineCardData: text("vaccine_card_data"), // Base64 encoded vaccine card image (JPEG/PNG)
-  pictureData: text("picture_data"), // Base64 encoded image (JPEG/PNG) for family member picture
+  vaccineCardUrl: text("vaccine_card_url"), // URL to vaccine card image
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()
   ),

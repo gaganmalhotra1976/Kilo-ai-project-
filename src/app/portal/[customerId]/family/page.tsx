@@ -7,7 +7,7 @@ type FamilyMember = {
   name: string;
   dateOfBirth: string | null;
   gender: string | null;
-  vaccineCardData: string | null;
+  vaccineCardUrl: string | null;
 };
 
 export default function FamilyPage() {
@@ -76,9 +76,9 @@ export default function FamilyPage() {
                     {new Date(member.dateOfBirth).toLocaleDateString("en-IN")}
                   </p>
                 )}
-                {member.vaccineCardData && (
+                {member.vaccineCardUrl && (
                   <a
-                    href={member.vaccineCardData}
+                    href={member.vaccineCardUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-emerald-600 hover:underline"

@@ -24,12 +24,10 @@ interface Customer {
 interface FamilyMember {
   id: number;
   customerId: number;
-  registrationNumber: string | null;
   name: string;
   dateOfBirth: string | null;
   gender: string | null;
-  pictureData: string | null;
-  vaccineCardData: string | null;
+  vaccineCardUrl: string | null;
 }
 
 interface Booking {
