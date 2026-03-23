@@ -174,14 +174,17 @@ export function ProfileClient() {
 
       // Load notifications
       try {
-        const notifRes = await fetch(`/api/notifications?customerId=${customerId}`);
+        const notifRes = await fetch(`/api/notifications?customerId=${customerId}&includeRead=true`);
         if (notifRes.ok) {
           const notifData = await notifRes.json();
+          console.log("Notifications loaded:", notifData);
           setNotifications(notifData);
           setUnreadCount(notifData.filter((n: Notification) => !n.isRead).length);
+        } else {
+          console.log("Notifications API error:", notifRes.status);
         }
       } catch (e) {
-        console.log("Could not load notifications");
+        console.log("Could not load notifications:", e);
       }
     }
 
