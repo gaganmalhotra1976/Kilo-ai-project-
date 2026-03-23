@@ -17,8 +17,7 @@ export async function GET() {
     const items = await db
       .select()
       .from(vaccineCategoryItems)
-      .where(eq(vaccineCategoryItems.isActive, true))
-      .orderBy(asc(vaccineCategoryItems.sortOrder));
+      .where(eq(vaccineCategoryItems.isActive, true));
 
     const result = categories.map((cat) => ({
       ...cat,

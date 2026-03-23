@@ -9,6 +9,9 @@ type Booking = {
   adminNotes: string | null;
   bookingType: string;
   numberOfPeople: number;
+  preferredTime: string | null;
+  preferredDate: string | null;
+  vaccinesRequested: string;
 };
 
 type Quote = {
@@ -25,8 +28,24 @@ type Quote = {
   createdAt: Date | null;
 };
 
+type Vaccine = {
+  id: number;
+  name: string;
+  brand: string;
+  category: string;
+  mrp: number;
+  gstRate: number;
+  inventory: {
+    batchNumber: string;
+    expiryDate: string;
+    remainingQuantity: number;
+  } | null;
+};
+
 type LineItem = {
+  vaccineId: number;
   vaccine: string;
+  brand: string;
   qty: number;
   unitPrice: number;
   gstPct: number;
@@ -63,10 +82,14 @@ export default function BookingActions({
   const [adminNotes, setAdminNotes] = useState(booking.adminNotes ?? "");
   const [saving, setSaving] = useState(false);
   const [showQuoteForm, setShowQuoteForm] = useState(false);
+  const [vaccines, setVaccines] = useState<Vaccine[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [lineItems, setLineItems] = useState<LineItem[]>([
-    { vaccine: "", qty: 1, unitPrice: 0, gstPct: 12, batch: "", expiry: "" },
+    { vaccineId: 0, vaccine: "", brand: "", qty: 1, unitPrice: 0, gstPct: 5, batch: "", expiry: "" },
   ]);
   const [convenienceFee, setConvenienceFee] = useState(0);
+  const [additionalCharge, setAdditionalCharge] = useState(0);
+  const [additionalChargeDesc, setAdditionalChargeDesc] = useState("");
   const [discountType, setDiscountType] = useState<string>("");
   const [discountValue, setDiscountValue] = useState(0);
   const [quoteLoading, setQuoteLoading] = useState(false);
@@ -83,9 +106,13 @@ export default function BookingActions({
           headers["x-admin-token"] = adminToken;
         }
         
-        const res = await fetch("/api/settings", { headers });
-        if (res.ok) {
-          const data = await res.json();
+        const [settingsRes, vaccinesRes] = await Promise.all([
+          fetch("/api/settings", { headers }),
+          fetch("/api/vaccines/catalogue")
+        ]);
+        
+        if (settingsRes.ok) {
+          const data = await settingsRes.json();
           const settingsMap: Record<string, string> = {};
           data.forEach((s: { key: string; value: string }) => {
             settingsMap[s.key] = s.value;
@@ -99,16 +126,11 @@ export default function BookingActions({
               ? 0
               : parseFloat(settingsMap.convenienceFee || "200")
           );
-          setLineItems([
-            {
-              vaccine: "",
-              qty: 1,
-              unitPrice: 0,
-              gstPct: parseFloat(settingsMap.defaultGstRate || "12"),
-              batch: "",
-              expiry: "",
-            },
-          ]);
+        }
+
+        if (vaccinesRes.ok) {
+          const vaccinesData = await vaccinesRes.json();
+          setVaccines(vaccinesData.allVaccines || []);
         }
       } catch (e) {
         console.error("Failed to load settings:", e);
@@ -131,17 +153,68 @@ export default function BookingActions({
   }
 
   function addLineItem() {
-    setLineItems((prev) => [...prev, { vaccine: "", qty: 1, unitPrice: 0, gstPct: 12, batch: "", expiry: "" }]);
+    setLineItems((prev) => [...prev, { vaccineId: 0, vaccine: "", brand: "", qty: 1, unitPrice: 0, gstPct: 5, batch: "", expiry: "" }]);
   }
 
   function removeLineItem(i: number) {
     setLineItems((prev) => prev.filter((_, idx) => idx !== i));
   }
 
+  function handleVaccineSelect(i: number, vaccineId: number) {
+    const vaccine = vaccines.find(v => v.id === vaccineId);
+    if (vaccine) {
+      setLineItems((prev) =>
+        prev.map((item, idx) => idx === i ? {
+          ...item,
+          vaccineId: vaccine.id,
+          vaccine: vaccine.name,
+          brand: vaccine.brand || "",
+          unitPrice: vaccine.mrp,
+          gstPct: vaccine.gstRate,
+          batch: vaccine.inventory?.batchNumber || "",
+          expiry: vaccine.inventory?.expiryDate || "",
+        } : item)
+      );
+    }
+  }
+
   function updateLineItem(i: number, field: keyof LineItem, value: string | number) {
     setLineItems((prev) =>
       prev.map((item, idx) => (idx === i ? { ...item, [field]: value } : item))
     );
+  }
+
+  // Populate from booking
+  function populateFromBooking() {
+    try {
+      const bookingVaccines = JSON.parse(booking.vaccinesRequested);
+      const newItems: LineItem[] = (Array.isArray(bookingVaccines) ? bookingVaccines : [bookingVaccines]).map((v: string) => ({
+        vaccineId: 0,
+        vaccine: v,
+        brand: "",
+        qty: 1,
+        unitPrice: 0,
+        gstPct: 5,
+        batch: "",
+        expiry: "",
+      }));
+      setLineItems(newItems.length > 0 ? newItems : [{ vaccineId: 0, vaccine: "", brand: "", qty: 1, unitPrice: 0, gstPct: 5, batch: "", expiry: "" }]);
+
+      // Auto-add charges for premium/sunday
+      const isPremium = booking.preferredTime === "premium-1hr";
+      const isSunday = booking.preferredDate ? new Date(booking.preferredDate).getDay() === 0 : false;
+      
+      if (isPremium) {
+        setAdditionalCharge(200);
+        setAdditionalChargeDesc("Premium Slot Charge (+₹200)");
+      }
+      if (isSunday) {
+        setAdditionalCharge(prev => prev + 200);
+        setAdditionalChargeDesc(prev => prev ? `${prev} + Sunday Advance` : "Sunday Advance (₹200, Non-Refundable)");
+      }
+    } catch (e) {
+      console.error("Failed to parse booking vaccines", e);
+    }
   }
 
   const subtotal = lineItems.reduce((sum, item) => sum + item.qty * item.unitPrice, 0) + convenienceFee;

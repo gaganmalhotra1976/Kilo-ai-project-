@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/db";
-import { banners, youtubeVideos, vaccineCategories, vaccineCategoryItems } from "@/db/schema";
+import { banners, youtubeVideos, vaccineCategories, vaccines } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import HeroCarousel from "@/components/HeroCarousel";
 import YouTubeSection from "@/components/YouTubeSection";
@@ -193,17 +193,17 @@ const demoCategories = [
 
 export default async function HomePage() {
   // Fetch all CMS data in parallel
-  const [heroBanners, dbVideos, dbCategories, categoryItems] = await Promise.all([
+  const [heroBanners, dbVideos, dbCategories, dbVaccines] = await Promise.all([
     db.select().from(banners).where(eq(banners.isActive, true)).orderBy(asc(banners.sortOrder)),
     db.select().from(youtubeVideos).where(eq(youtubeVideos.isActive, true)).orderBy(asc(youtubeVideos.sortOrder)),
     db.select().from(vaccineCategories).where(eq(vaccineCategories.isActive, true)).orderBy(asc(vaccineCategories.sortOrder)),
-    db.select().from(vaccineCategoryItems).where(eq(vaccineCategoryItems.isActive, true)).orderBy(asc(vaccineCategoryItems.sortOrder)),
+    db.select().from(vaccines).where(eq(vaccines.isActive, true)),
   ]);
 
   // Attach items to categories
   const dbCategoriesWithItems = dbCategories.map((cat) => ({
     ...cat,
-    items: categoryItems.filter((item) => item.categoryId === cat.id),
+    items: dbVaccines.filter((v) => String(v.category) === String(cat.name)),
   }));
 
   // Use DB data if available, otherwise fall back to demo data so sections always show

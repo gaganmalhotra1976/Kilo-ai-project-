@@ -7,17 +7,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   try {
     const { id } = await params;
     const body = await req.json();
-    const { categoryId, name, description, ageGroup, dosesRequired, notes, sortOrder, isActive } = body;
+    const { categoryId, vaccineId, isActive } = body;
     const [row] = await db
       .update(vaccineCategoryItems)
       .set({
         categoryId: categoryId ? Number(categoryId) : undefined,
-        name,
-        description: description ?? null,
-        ageGroup: ageGroup ?? null,
-        dosesRequired: dosesRequired ?? 1,
-        notes: notes ?? null,
-        sortOrder: sortOrder ?? 0,
+        vaccineId: vaccineId ? Number(vaccineId) : undefined,
         isActive: isActive ?? true,
       })
       .where(eq(vaccineCategoryItems.id, Number(id)))

@@ -214,12 +214,25 @@ export const vaccineCategoryItems = sqliteTable("vaccine_category_items", {
   categoryId: integer("category_id")
     .notNull()
     .references(() => vaccineCategories.id),
-  name: text("name").notNull(),
-  description: text("description"),
-  ageGroup: text("age_group"),
-  dosesRequired: integer("doses_required").default(1),
-  notes: text("notes"),
-  sortOrder: integer("sort_order").notNull().default(0),
+  vaccineId: integer("vaccine_id")
+    .notNull()
+    .references(() => vaccines.id),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+});
+
+// ── Vaccine Inventory (batch tracking) ─────────────────────────────────────────
+export const vaccineInventory = sqliteTable("vaccine_inventory", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  vaccineId: integer("vaccine_id")
+    .notNull()
+    .references(() => vaccines.id),
+  batchNumber: text("batch_number").notNull(),
+  expiryDate: text("expiry_date"), // ISO date string
+  quantity: integer("quantity").notNull().default(0),
+  remainingQuantity: integer("remaining_quantity").notNull().default(0),
+  purchasePrice: real("purchase_price"), // Cost price
+  mrp: real("mrp"), // Selling price (can override vaccine mrp)
+  gstRate: real("gst_rate").notNull().default(5), // Default 5% for vaccines
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()
