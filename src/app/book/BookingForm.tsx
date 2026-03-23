@@ -357,6 +357,14 @@ function BookingFormInner() {
       return;
     }
 
+    // Medical disclaimer validation
+    const medicalDisclaimer = formEl.querySelector<HTMLInputElement>('input[name="medicalDisclaimer"]');
+    if (medicalDisclaimer && !medicalDisclaimer.checked) {
+      setLoading(false);
+      setError("Please confirm the medical disclaimer to proceed.");
+      return;
+    }
+
     // Build patient names list
     let patientNames: string[] | null = null;
     if (isLoggedIn) {
@@ -453,6 +461,13 @@ function BookingFormInner() {
           </div>
         </div>
       )}
+
+      {/* Clarification note */}
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+        <p className="text-xs text-amber-800">
+          <span className="font-semibold">Note:</span> This booking is for <span className="font-medium">vaccination after free pediatrician consultation</span>. It is not for purchasing vaccines separately.
+        </p>
+      </div>
 
       {/* Profile data notice */}
       {customerProfile && (
@@ -1157,6 +1172,19 @@ function BookingFormInner() {
           {error}
         </div>
       )}
+
+      {/* Medical disclaimer checkbox */}
+      <label className="flex items-start gap-3 cursor-pointer bg-gray-50 rounded-xl p-3">
+        <input
+          type="checkbox"
+          name="medicalDisclaimer"
+          defaultChecked
+          className="mt-1 w-4 h-4 accent-emerald-600"
+        />
+        <span className="text-xs text-gray-600">
+          * I verify that the child does not have any serious medical condition, past drug allergies, or severe egg allergies.
+        </span>
+      </label>
 
       <button
         type="submit"
