@@ -57,6 +57,22 @@ export const bookings = sqliteTable("bookings", {
   ),
 });
 
+// ── Customer Notifications ─────────────────────────────────────────────────
+export const notifications = sqliteTable("notifications", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  customerId: integer("customer_id")
+    .notNull()
+    .references(() => customers.id),
+  type: text("type").notNull(), // booking_status | quote | payment | general
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  isRead: integer("is_read", { mode: "boolean" }).notNull().default(false),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => new Date()
+  ),
+});
+
 // ── Quotes ─────────────────────────────────────────────────────────────────
 // Admin creates a quote for a booking; customer approves it
 export const quotes = sqliteTable("quotes", {

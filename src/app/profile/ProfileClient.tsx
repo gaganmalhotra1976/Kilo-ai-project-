@@ -52,6 +52,17 @@ interface Booking {
   updatedAt: string;
 }
 
+interface Notification {
+  id: number;
+  customerId: number;
+  type: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  bookingId: number | null;
+  createdAt: string;
+}
+
 export function ProfileClient() {
   const router = useRouter();
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -76,6 +87,9 @@ export function ProfileClient() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     // Get customer data from localStorage (set during login)
@@ -156,6 +170,18 @@ export function ProfileClient() {
         }
       } catch (e) {
         console.log("Could not load bookings");
+      }
+
+      // Load notifications
+      try {
+        const notifRes = await fetch(`/api/notifications?customerId=${customerId}`);
+        if (notifRes.ok) {
+          const notifData = await notifRes.json();
+          setNotifications(notifData);
+          setUnreadCount(notifData.filter((n: Notification) => !n.isRead).length);
+        }
+      } catch (e) {
+        console.log("Could not load notifications");
       }
     }
 
@@ -334,6 +360,21 @@ export function ProfileClient() {
               <p className="text-sm text-gray-600">Your Profile</p>
             </div>
             <div className="flex items-center gap-4">
+              <div className="relative">
+                <button 
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="text-gray-600 hover:text-emerald-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                </button>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </div>
               <Link href="/" className="text-emerald-600 hover:underline">
                 Home
               </Link>
@@ -347,6 +388,28 @@ export function ProfileClient() {
           </div>
         </div>
       </header>
+
+      {/* Notifications Dropdown */}
+      {showNotifications && (
+        <div className="absolute right-4 top-20 w-80 bg-white rounded-xl shadow-xl border border-gray-200 z-50 max-h-96 overflow-y-auto">
+          <div className="p-3 border-b border-gray-100">
+            <h3 className="font-semibold text-gray-900">Notifications</h3>
+          </div>
+          {notifications.length === 0 ? (
+            <p className="p-4 text-sm text-gray-500">No notifications</p>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {notifications.slice(0, 10).map((notif) => (
+                <div key={notif.id} className={`p-3 hover:bg-gray-50 ${!notif.isRead ? 'bg-blue-50' : ''}`}>
+                  <p className="font-medium text-sm text-gray-900">{notif.title}</p>
+                  <p className="text-xs text-gray-500 mt-1">{notif.message}</p>
+                  <p className="text-xs text-gray-400 mt-1">{new Date(notif.createdAt).toLocaleString("en-IN")}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
