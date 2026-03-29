@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { bookings, notifications, customers } from "@/db/schema";
+import { bookings, notifications, patients } from "@/db/schema";
 import { eq } from "drizzle-orm";
 // import { triggerBookingUpdated, triggerBookingCancelled } from "@/lib/webhooks";
 
@@ -69,8 +69,8 @@ export async function PATCH(
       try {
         const customer = await db
           .select()
-          .from(customers)
-          .where(eq(customers.id, updated[0].customerId))
+          .from(patients)
+          .where(eq(patients.id, updated[0].customerId))
           .then(res => res[0]);
 
         if (customer) {

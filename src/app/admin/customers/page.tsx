@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { db } from "@/db";
-import { customers, bookings } from "@/db/schema";
+import { patients, bookings } from "@/db/schema";
 import { eq, count, desc } from "drizzle-orm";
 import Link from "next/link";
 
@@ -10,8 +10,8 @@ export const dynamic = "force-dynamic";
 export default async function AdminCustomersPage() {
   const allCustomers = await db
     .select()
-    .from(customers)
-    .orderBy(desc(customers.createdAt));
+    .from(patients)
+    .orderBy(desc(patients.createdAt));
 
   // Get booking counts per customer
   const bookingCounts = await db
@@ -33,7 +33,7 @@ export default async function AdminCustomersPage() {
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         {allCustomers.length === 0 ? (
           <div className="py-16 text-center text-gray-400">
-            No customers yet. They&apos;ll appear here when bookings are submitted.
+            No patients yet. They&apos;ll appear here when bookings are submitted.
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -80,7 +80,7 @@ export default async function AdminCustomersPage() {
                     </td>
                     <td className="px-5 py-4">
                       <Link
-                        href={`/admin/customers/${c.id}`}
+                        href={`/admin/patients/${c.id}`}
                         className="text-emerald-600 font-medium hover:underline text-xs"
                       >
                         View details →

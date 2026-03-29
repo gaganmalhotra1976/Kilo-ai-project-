@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { customers } from "@/db/schema";
+import { patients } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requirePermission, type AuthenticatedRequest } from "@/lib/authMiddleware";
 import { logStaffAction } from "@/lib/adminAuth";
-import bcrypt from "bcryptjs";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-// GET /api/customers/[id]
+// GET /api/patients/[id]
 export async function GET(request: Request, { params }: RouteParams) {
   const req = request as AuthenticatedRequest;
-  const authResult = await requirePermission(req, "customers", "read");
+  const authResult = await requirePermission(req, "patients", "read");
   
   if (authResult instanceof NextResponse) {
     return authResult;
@@ -30,8 +29,8 @@ export async function GET(request: Request, { params }: RouteParams) {
       );
     }
 
-    const customer = await db.query.customers.findFirst({
-      where: eq(customers.id, customerId),
+    const customer = await db.query.patients.findFirst({
+      where: eq(patients.id, customerId),
     });
 
     if (!customer) {
@@ -41,7 +40,7 @@ export async function GET(request: Request, { params }: RouteParams) {
       );
     }
 
-    await logStaffAction(authResult.id, "view", "customers", customerId);
+    await logStaffAction(authResult.id, "view", "patients", customerId);
 
     const { password: _password, ...customerWithoutPassword } = customer;
     return NextResponse.json(customerWithoutPassword);
@@ -54,9 +53,9 @@ export async function GET(request: Request, { params }: RouteParams) {
   }
 }
 
-// PATCH /api/customers/[id] — update customer
+// PATCH /api/patients/[id] — update customer
 export async function PATCH(req: AuthenticatedRequest, { params }: RouteParams) {
-  const authResult = await requirePermission(req, "customers", "update");
+  const authResult = await requirePermission(req, "patients", "update");
   
   if (authResult instanceof NextResponse) {
     return authResult;
@@ -86,14 +85,10 @@ export async function PATCH(req: AuthenticatedRequest, { params }: RouteParams) 
       pictureUrl: pictureUrl ?? undefined,
     };
 
-    if (password) {
-      updateData.password = await bcrypt.hash(password, 12);
-    }
-
     const [updated] = await db
-      .update(customers)
+      .update(patients)
       .set(updateData)
-      .where(eq(customers.id, customerId))
+      .where(eq(patients.id, customerId))
       .returning();
 
     if (!updated) {
@@ -103,7 +98,7 @@ export async function PATCH(req: AuthenticatedRequest, { params }: RouteParams) 
       );
     }
 
-    await logStaffAction(authResult.id, "update", "customers", customerId, { name, email });
+    await logStaffAction(authResult.id, "update", "patients", customerId, { name, email });
 
     const { password: _password, ...customerWithoutPassword } = updated;
     return NextResponse.json(customerWithoutPassword);
@@ -116,9 +111,9 @@ export async function PATCH(req: AuthenticatedRequest, { params }: RouteParams) 
   }
 }
 
-// DELETE /api/customers/[id] — soft delete customer
+// DELETE /api/patients/[id] — soft delete customer
 export async function DELETE(req: AuthenticatedRequest, { params }: RouteParams) {
-  const authResult = await requirePermission(req, "customers", "delete");
+  const authResult = await requirePermission(req, "patients", "delete");
   
   if (authResult instanceof NextResponse) {
     return authResult;
@@ -137,7 +132,7 @@ export async function DELETE(req: AuthenticatedRequest, { params }: RouteParams)
 
     // Soft delete: add "(deleted)" to name and clear sensitive data
     const [updated] = await db
-      .update(customers)
+      .update(patients)
       .set({
         name: "Deleted Customer",
         phone: "0000000000",
@@ -145,7 +140,7 @@ export async function DELETE(req: AuthenticatedRequest, { params }: RouteParams)
         address: null,
         notes: "Customer soft-deleted by staff",
       })
-      .where(eq(customers.id, customerId))
+      .where(eq(patients.id, customerId))
       .returning();
 
     if (!updated) {
@@ -155,7 +150,7 @@ export async function DELETE(req: AuthenticatedRequest, { params }: RouteParams)
       );
     }
 
-    await logStaffAction(authResult.id, "delete", "customers", customerId);
+    await logStaffAction(authResult.id, "delete", "patients", customerId);
 
     return NextResponse.json({ success: true, message: "Customer soft-deleted" });
   } catch (error) {

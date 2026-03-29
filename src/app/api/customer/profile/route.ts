@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { customers } from "@/db/schema";
+import { patients } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 // GET /api/customer/profile — Get customer profile by ID (self-service)
@@ -14,8 +14,8 @@ export async function GET(req: NextRequest) {
     }
 
     const customer = await db.select()
-      .from(customers)
-      .where(eq(customers.id, parseInt(customerId)));
+      .from(patients)
+      .where(eq(patients.id, parseInt(customerId)));
 
     if (!customer[0]) {
       return NextResponse.json({ error: "Customer not found" }, { status: 404 });
@@ -46,8 +46,8 @@ export async function PATCH(req: NextRequest) {
 
     // Verify customer exists
     const existingCustomer = await db.select()
-      .from(customers)
-      .where(eq(customers.id, customerId));
+      .from(patients)
+      .where(eq(patients.id, customerId));
 
     if (!existingCustomer[0]) {
       return NextResponse.json({ error: "Customer not found" }, { status: 404 });
@@ -68,9 +68,9 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 });
     }
 
-    const updated = await db.update(customers)
+    const updated = await db.update(patients)
       .set(updateData)
-      .where(eq(customers.id, customerId))
+      .where(eq(patients.id, customerId))
       .returning();
 
     if (!updated[0]) {

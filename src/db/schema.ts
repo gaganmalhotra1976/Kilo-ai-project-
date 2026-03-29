@@ -10,8 +10,8 @@ export const customerOtps = sqliteTable("customer_otps", {
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
 
-// ── Customers ──────────────────────────────────────────────────────────────
-export const customers = sqliteTable("customers", {
+// ── Patients ──────────────────────────────────────────────────────────────
+export const patients = sqliteTable("patients", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   phone: text("phone").notNull(),
@@ -32,7 +32,7 @@ export const customers = sqliteTable("customers", {
 // Status flow: pending → quoted → confirmed → completed | cancelled
 export const bookings = sqliteTable("bookings", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  customerId: integer("customer_id").references(() => customers.id),
+  customerId: integer("customer_id").references(() => patients.id),
   // Denormalised snapshot so we don't lose data if customer is edited
   customerName: text("customer_name").notNull(),
   customerPhone: text("customer_phone").notNull(),
@@ -62,7 +62,7 @@ export const notifications = sqliteTable("notifications", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   customerId: integer("customer_id")
     .notNull()
-    .references(() => customers.id),
+    .references(() => patients.id),
   type: text("type").notNull(), // booking_status | quote | payment | general
   title: text("title").notNull(),
   message: text("message").notNull(),
@@ -133,7 +133,7 @@ export const familyMembers = sqliteTable("family_members", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   customerId: integer("customer_id")
     .notNull()
-    .references(() => customers.id),
+    .references(() => patients.id),
   name: text("name").notNull(),
   dateOfBirth: text("date_of_birth"), // ISO date string
   gender: text("gender"), // male | female | other
@@ -220,8 +220,8 @@ export const vaccineCategoryItems = sqliteTable("vaccine_category_items", {
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
 });
 
-// ── Vaccine Inventory (batch tracking) ─────────────────────────────────────────
-export const vaccineInventory = sqliteTable("vaccine_inventory", {
+// ── Vaccine Vectors (batch tracking) ─────────────────────────────────────────
+export const vaccine_vectors = sqliteTable("vaccine_vectors", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   vaccineId: integer("vaccine_id")
     .notNull()
@@ -289,7 +289,7 @@ export const pipelineCards = sqliteTable("pipeline_cards", {
   pipelineId: integer("pipeline_id").notNull().references(() => pipelines.id),
   stageId: integer("stage_id").notNull().references(() => pipelineStages.id),
   title: text("title").notNull(),
-  customerId: integer("customer_id").references(() => customers.id),
+  customerId: integer("customer_id").references(() => patients.id),
   customerName: text("customer_name"),
   assignedTo: text("assigned_to"),
   dueDate: text("due_date"),
@@ -366,7 +366,7 @@ export const webhookLogs = sqliteTable("webhook_logs", {
 // ── Support Tickets ──────────────────────────────────────────────────────────
 export const supportTickets = sqliteTable("support_tickets", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  customerId: integer("customer_id").references(() => customers.id),
+  customerId: integer("customer_id").references(() => patients.id),
   subject: text("subject").notNull(),
   description: text("description").notNull(),
   priority: text("priority").notNull().default("medium"),
@@ -380,7 +380,7 @@ export const supportTickets = sqliteTable("support_tickets", {
 export const consultationVouchers = sqliteTable("consultation_vouchers", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   voucherCode: text("voucher_code").notNull().unique(),
-  customerId: integer("customer_id").references(() => customers.id),
+  customerId: integer("customer_id").references(() => patients.id),
   patientName: text("patient_name").notNull(),
   bookingId: integer("booking_id").references(() => bookings.id),
   quoteId: integer("quote_id").references(() => quotes.id),
@@ -406,7 +406,7 @@ export const consultationVouchers = sqliteTable("consultation_vouchers", {
 export const consultationBookings = sqliteTable("consultation_bookings", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   voucherId: integer("voucher_id").notNull().references(() => consultationVouchers.id),
-  customerId: integer("customer_id").notNull().references(() => customers.id),
+  customerId: integer("customer_id").notNull().references(() => patients.id),
   patientName: text("patient_name").notNull(),
   consultationDate: text("consultation_date").notNull(), // ISO date string (YYYY-MM-DD)
   consultationTime: text("consultation_time").notNull(), // Time slot (e.g., "11:00", "14:00")
@@ -475,7 +475,7 @@ export const staffAuditLog = sqliteTable("staff_audit_log", {
 // ── Customer Communications ─────────────────────────────────────────────────────
 export const customerCommunications = sqliteTable("customer_communications", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  customerId: integer("customer_id").notNull().references(() => customers.id),
+  customerId: integer("customer_id").notNull().references(() => patients.id),
   bookingId: integer("booking_id").references(() => bookings.id),
   staffId: integer("staff_id").references(() => staff.id),
   type: text("type").notNull(), // WhatsApp | Call | Email | In-Person
@@ -490,7 +490,7 @@ export const invoices = sqliteTable("invoices", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   invoiceNumber: text("invoice_number").notNull().unique(),
   bookingId: integer("booking_id").notNull().references(() => bookings.id),
-  customerId: integer("customer_id").notNull().references(() => customers.id),
+  customerId: integer("customer_id").notNull().references(() => patients.id),
   // Invoice details
   subtotal: real("subtotal").notNull(),
   discountType: text("discount_type"), // percentage | flat
@@ -514,10 +514,10 @@ export const invoices = sqliteTable("invoices", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
 
-// ── Document Storage ─────────────────────────────────────────────────────────
-export const documentStorage = sqliteTable("document_storage", {
+// ── Temp Docs ──────────────────────────────────────────────────────────────
+export const temp_docs = sqliteTable("temp_docs", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  customerId: integer("customer_id").references(() => customers.id),
+  customerId: integer("customer_id").references(() => patients.id),
   bookingId: integer("booking_id").references(() => bookings.id),
   documentType: text("document_type").notNull(), // vaccination_certificate | invoice | prescription | id_proof
   fileName: text("file_name").notNull(),

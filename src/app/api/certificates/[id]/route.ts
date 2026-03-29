@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { documentStorage } from "@/db/schema";
+import { temp_docs } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function GET(
@@ -13,8 +13,8 @@ export async function GET(
 
     const [doc] = await db
       .select()
-      .from(documentStorage)
-      .where(eq(documentStorage.id, documentId));
+      .from(temp_docs)
+      .where(eq(temp_docs.id, documentId));
 
     if (!doc || doc.documentType !== "vaccination_certificate") {
       return NextResponse.json({ error: "Certificate not found" }, { status: 404 });

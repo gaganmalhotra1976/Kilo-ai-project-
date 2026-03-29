@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { customers as customerSchema } from "@/db/schema";
+import { patients } from "@/db/schema";
 
 interface CreateCustomerLoginProps {
   customerId: number;

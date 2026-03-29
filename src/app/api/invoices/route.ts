@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { invoices, bookings, customers, quotes, settings } from "@/db/schema";
+import { invoices, bookings, patients, quotes, settings } from "@/db/schema";
 import { desc, eq, and } from "drizzle-orm";
 import { requirePermission, type AuthenticatedRequest } from "@/lib/authMiddleware";
 import { getSettingWithDefault } from "@/lib/adminAuth";
@@ -70,7 +70,7 @@ export async function POST(req: AuthenticatedRequest) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    const [customer] = await db.select().from(customers).where(eq(customers.id, booking.customerId!));
+    const [customer] = await db.select().from(patients).where(eq(patients.id, booking.customerId!));
 
     // Get approved quote for this booking
     const bookingQuotes = await db.select().from(quotes).where(eq(quotes.bookingId, bookingId));

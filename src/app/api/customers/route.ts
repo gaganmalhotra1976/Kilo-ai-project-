@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { customers } from "@/db/schema";
+import { patients } from "@/db/schema";
 import { desc, like, or, eq } from "drizzle-orm";
 import { requireAuth, requirePermission, type AuthenticatedRequest } from "@/lib/authMiddleware";
 import { logStaffAction } from "@/lib/adminAuth";
@@ -9,9 +9,9 @@ function sanitizeSearchInput(input: string): string {
   return input.replace(/[%_]/g, "\\$&").slice(0, 100);
 }
 
-// GET /api/customers
+// GET /api/patients
 export async function GET(req: AuthenticatedRequest) {
-  const authResult = await requirePermission(req, "customers", "read");
+  const authResult = await requirePermission(req, "patients", "read");
   
   if (authResult instanceof NextResponse) {
     return authResult;
@@ -25,34 +25,34 @@ export async function GET(req: AuthenticatedRequest) {
       const sanitized = sanitizeSearchInput(search);
       const results = await db
         .select()
-        .from(customers)
+        .from(patients)
         .where(
           or(
-            like(customers.name, `%${sanitized}%`),
-            like(customers.phone, `%${sanitized}%`),
-            like(customers.email, `%${sanitized}%`)
+            like(patients.name, `%${sanitized}%`),
+            like(patients.phone, `%${sanitized}%`),
+            like(patients.email, `%${sanitized}%`)
           )
         )
-        .orderBy(desc(customers.createdAt));
+        .orderBy(desc(patients.createdAt));
       return NextResponse.json(results);
     }
 
     const results = await db
       .select()
-      .from(customers)
-      .orderBy(desc(customers.createdAt));
+      .from(patients)
+      .orderBy(desc(patients.createdAt));
     
-    await logStaffAction(authResult.id, "view", "customers");
+    await logStaffAction(authResult.id, "view", "patients");
     return NextResponse.json(results);
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Failed to fetch customers" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch patients" }, { status: 500 });
   }
 }
 
-// POST /api/customers — Create new customer (manual creation by staff)
+// POST /api/patients — Create new customer (manual creation by staff)
 export async function POST(req: AuthenticatedRequest) {
-  const authResult = await requirePermission(req, "customers", "create");
+  const authResult = await requirePermission(req, "patients", "create");
   
   if (authResult instanceof NextResponse) {
     return authResult;
@@ -71,8 +71,8 @@ export async function POST(req: AuthenticatedRequest) {
 
     const existingCustomer = await db
       .select()
-      .from(customers)
-      .where(eq(customers.phone, phone))
+      .from(patients)
+      .where(eq(patients.phone, phone))
       .limit(1);
 
     if (existingCustomer.length > 0) {
@@ -83,7 +83,7 @@ export async function POST(req: AuthenticatedRequest) {
     }
 
     const [newCustomer] = await db
-      .insert(customers)
+      .insert(patients)
       .values({
         name,
         phone,
@@ -93,7 +93,7 @@ export async function POST(req: AuthenticatedRequest) {
       })
       .returning();
 
-    await logStaffAction(authResult.id, "create", "customers", newCustomer.id, { name, phone });
+    await logStaffAction(authResult.id, "create", "patients", newCustomer.id, { name, phone });
 
     return NextResponse.json(newCustomer, { status: 201 });
   } catch (err) {

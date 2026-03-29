@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
-import { invoices, bookings, customers } from "@/db/schema";
+import { invoices, bookings, patients } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getSettingWithDefault } from "@/lib/adminAuth";
 
@@ -31,8 +31,8 @@ export default async function InvoicePage({
 
   const [customer] = await db
     .select()
-    .from(customers)
-    .where(eq(customers.id, invoice.customerId));
+    .from(patients)
+    .where(eq(patients.id, invoice.customerId));
 
   const gstin = await getSettingWithDefault("gstin");
   const companyName = await getSettingWithDefault("companyName");

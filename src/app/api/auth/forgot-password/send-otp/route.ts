@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { customers, customerOtps } from "@/db/schema";
+import { patients, customerOtps } from "@/db/schema";
 import { eq, or, and, gt } from "drizzle-orm";
 import crypto from "crypto";
 
@@ -25,14 +25,14 @@ export async function POST(request: Request) {
     if (email) {
       customer = await db
         .select()
-        .from(customers)
-        .where(eq(customers.email, email))
+        .from(patients)
+        .where(eq(patients.email, email))
         .get();
     } else {
       customer = await db
         .select()
-        .from(customers)
-        .where(eq(customers.phone, phone))
+        .from(patients)
+        .where(eq(patients.phone, phone))
         .get();
     }
 

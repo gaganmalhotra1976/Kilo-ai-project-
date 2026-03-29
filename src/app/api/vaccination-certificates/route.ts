@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { bookings, customers, quotes, documentStorage } from "@/db/schema";
+import { bookings, patients, quotes, temp_docs } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requirePermission, type AuthenticatedRequest } from "@/lib/authMiddleware";
 import { getSettingWithDefault } from "@/lib/adminAuth";
@@ -33,7 +33,7 @@ export async function POST(req: AuthenticatedRequest) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    const [customer] = await db.select().from(customers).where(eq(customers.id, booking.customerId!));
+    const [customer] = await db.select().from(patients).where(eq(patients.id, booking.customerId!));
 
     // Get company details from settings
     const companyName = await getSettingWithDefault("companyName");
@@ -62,7 +62,7 @@ export async function POST(req: AuthenticatedRequest) {
     };
 
     // Store certificate data as JSON in document storage
-    const [doc] = await db.insert(documentStorage).values({
+    const [doc] = await db.insert(temp_docs).values({
       customerId: customer?.id,
       bookingId,
       documentType: "vaccination_certificate",
@@ -90,16 +90,16 @@ export async function GET(req: AuthenticatedRequest) {
   const bookingId = searchParams.get("bookingId");
 
   try {
-    let query = db.select().from(documentStorage)
-      .where(eq(documentStorage.documentType, "vaccination_certificate"));
+    let query = db.select().from(temp_docs)
+      .where(eq(temp_docs.documentType, "vaccination_certificate"));
 
     if (customerId) {
       // @ts-ignore
-      query = query.where(eq(documentStorage.customerId, parseInt(customerId)));
+      query = query.where(eq(temp_docs.customerId, parseInt(customerId)));
     }
     if (bookingId) {
       // @ts-ignore
-      query = query.where(eq(documentStorage.bookingId, parseInt(bookingId)));
+      query = query.where(eq(temp_docs.bookingId, parseInt(bookingId)));
     }
 
     const results = await query;

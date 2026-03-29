@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { customers, bookings, quotes } from "@/db/schema";
+import { patients, bookings, quotes } from "@/db/schema";
 import { eq, and, gte, lte, sql, desc } from "drizzle-orm";
 
-// GET /api/reports/customers — Customer Report
+// GET /api/reports/patients — Customer Report
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -14,19 +14,19 @@ export async function GET(req: NextRequest) {
 
     const dateConditions = [];
     if (startDate && endDate) {
-      dateConditions.push(gte(customers.createdAt, new Date(startDate)));
-      dateConditions.push(lte(customers.createdAt, new Date(endDate)));
+      dateConditions.push(gte(patients.createdAt, new Date(startDate)));
+      dateConditions.push(lte(patients.createdAt, new Date(endDate)));
     }
 
-    // 1. New customers this month
+    // 1. New patients this month
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const newCustomersThisMonth = await db.select({ count: sql<number>`count(*)` })
-      .from(customers)
-      .where(gte(customers.createdAt, monthStart));
+      .from(patients)
+      .where(gte(patients.createdAt, monthStart));
 
-    // 2. Repeat customers (booked more than once)
+    // 2. Repeat patients (booked more than once)
     const repeatCustomers = await db.select({
       customerId: bookings.customerId,
       customerName: bookings.customerName,
@@ -42,16 +42,16 @@ export async function GET(req: NextRequest) {
     .limit(20);
 
     // 3. Customers by city
-    const customersByCity = await db.select({
-      city: customers.city,
+    const patientsByCity = await db.select({
+      city: patients.city,
       count: sql<number>`count(*)`
     })
-    .from(customers)
+    .from(patients)
     .where(dateConditions.length > 0 ? and(...dateConditions) : undefined)
-    .groupBy(customers.city)
+    .groupBy(patients.city)
     .orderBy(desc(sql`count(*)`));
 
-    // 4. Top 10 customers by booking value
+    // 4. Top 10 patients by booking value
     const topCustomers = await db.select({
       customerId: bookings.customerId,
       customerName: bookings.customerName,
@@ -70,9 +70,9 @@ export async function GET(req: NextRequest) {
     .limit(10);
 
     // Apply city filter
-    let filteredCustomersByCity = customersByCity;
+    let filteredCustomersByCity = patientsByCity;
     if (city) {
-      filteredCustomersByCity = customersByCity.filter(c => c.city === city);
+      filteredCustomersByCity = patientsByCity.filter(c => c.city === city);
     }
 
     return NextResponse.json({
@@ -80,13 +80,13 @@ export async function GET(req: NextRequest) {
       data: {
         newCustomersThisMonth: newCustomersThisMonth[0]?.count || 0,
         repeatCustomers,
-        customersByCity: filteredCustomersByCity,
+        patientsByCity: filteredCustomersByCity,
         topCustomers
       }
     });
 
   } catch (error) {
-    console.error("GET /api/reports/customers error:", error);
+    console.error("GET /api/reports/patients error:", error);
     return NextResponse.json({ error: "Failed to fetch customer report" }, { status: 500 });
   }
 }

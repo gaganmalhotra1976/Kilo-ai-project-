@@ -6,7 +6,7 @@ import { requirePermission, type AuthenticatedRequest } from "@/lib/authMiddlewa
 
 // GET /api/communications — list communications (filtered by customer)
 export async function GET(req: AuthenticatedRequest) {
-  const authResult = await requirePermission(req, "customers", "read");
+  const authResult = await requirePermission(req, "patients", "read");
   
   if (authResult instanceof NextResponse) {
     return authResult;
@@ -64,7 +64,7 @@ export async function GET(req: AuthenticatedRequest) {
 
 // POST /api/communications — create a new communication log
 export async function POST(req: AuthenticatedRequest) {
-  const authResult = await requirePermission(req, "customers", "create");
+  const authResult = await requirePermission(req, "patients", "create");
   
   if (authResult instanceof NextResponse) {
     return authResult;

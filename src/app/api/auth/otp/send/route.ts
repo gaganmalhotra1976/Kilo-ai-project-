@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { customerOtps, customers } from "@/db/schema";
+import { customerOtps, patients } from "@/db/schema";
 import { eq, and, gt } from "drizzle-orm";
 
 function generateOTP(): string {
@@ -20,8 +20,8 @@ export async function POST(req: NextRequest) {
     // Check if customer exists
     const [customer] = await db
       .select()
-      .from(customers)
-      .where(eq(customers.phone, phone))
+      .from(patients)
+      .where(eq(patients.phone, phone))
       .limit(1);
 
     if (!customer) {

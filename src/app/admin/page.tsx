@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/db";
-import { bookings, customers, quotes } from "@/db/schema";
+import { bookings, patients, quotes } from "@/db/schema";
 import { eq, count } from "drizzle-orm";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -21,7 +21,7 @@ export default async function AdminDashboard() {
     db.select({ count: count() }).from(bookings).where(eq(bookings.status, "pending")),
     db.select({ count: count() }).from(bookings).where(eq(bookings.status, "confirmed")),
     db.select({ count: count() }).from(bookings).where(eq(bookings.status, "completed")),
-    db.select({ count: count() }).from(customers),
+    db.select({ count: count() }).from(patients),
     db.select({ count: count() }).from(quotes).where(eq(quotes.status, "draft")),
   ]);
 
@@ -64,7 +64,7 @@ export default async function AdminDashboard() {
       label: "Customers",
       value: totalCustomers[0].count,
       icon: "👥",
-      href: "/admin/customers",
+      href: "/admin/patients",
       color: "bg-purple-50 text-purple-700",
     },
     {
@@ -89,7 +89,7 @@ export default async function AdminDashboard() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-500 text-sm mt-1">
-          Overview of all bookings, quotes, and customers.
+          Overview of all bookings, quotes, and patients.
         </p>
       </div>
 
@@ -120,7 +120,7 @@ export default async function AdminDashboard() {
         </div>
         {recentBookings.length === 0 ? (
           <div className="px-6 py-10 text-center text-gray-400">
-            No bookings yet. They&apos;ll appear here when customers submit requests.
+            No bookings yet. They&apos;ll appear here when patients submit requests.
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
@@ -165,7 +165,7 @@ export default async function AdminDashboard() {
           <p className="text-blue-700 text-sm">Send, approve, or update customer quotes.</p>
         </Link>
         <Link
-          href="/admin/customers"
+          href="/admin/patients"
           className="bg-purple-50 border border-purple-200 rounded-2xl p-5 hover:shadow-md transition-shadow"
         >
           <p className="text-purple-800 font-bold mb-1">👥 Customer Records</p>

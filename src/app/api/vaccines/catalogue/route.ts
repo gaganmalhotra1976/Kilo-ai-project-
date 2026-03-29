@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { vaccines, vaccineCategories, vaccineCategoryItems, vaccineInventory } from "@/db/schema";
+import { vaccines, vaccineCategories, vaccineCategoryItems, vaccine_vectors } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
@@ -23,9 +23,9 @@ export async function GET(req: NextRequest) {
     const inventoryMap: Record<number, any> = {};
     const inventory = await db
       .select()
-      .from(vaccineInventory)
-      .where(eq(vaccineInventory.isActive, true))
-      .orderBy(desc(vaccineInventory.createdAt));
+      .from(vaccine_vectors)
+      .where(eq(vaccine_vectors.isActive, true))
+      .orderBy(desc(vaccine_vectors.createdAt));
 
     inventory.forEach(inv => {
       if (!inventoryMap[inv.vaccineId] && inv.remainingQuantity > 0) {

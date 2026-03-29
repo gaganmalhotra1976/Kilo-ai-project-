@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
-import { documentStorage } from "@/db/schema";
+import { temp_docs } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export const metadata: Metadata = { title: "Vaccination Certificate" };
@@ -18,8 +18,8 @@ export default async function CertificatePage({
 
   const [doc] = await db
     .select()
-    .from(documentStorage)
-    .where(eq(documentStorage.id, documentId));
+    .from(temp_docs)
+    .where(eq(temp_docs.id, documentId));
 
   if (!doc || doc.documentType !== "vaccination_certificate") {
     notFound();

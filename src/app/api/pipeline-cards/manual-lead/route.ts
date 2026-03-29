@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { pipelineCards, pipelineCardHistory, pipelines, pipelineStages, customers } from "@/db/schema";
+import { pipelineCards, pipelineCardHistory, pipelines, pipelineStages, patients } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 // Helper function to get or create Sales pipeline with manual lead stage
@@ -88,20 +88,20 @@ export async function POST(req: NextRequest) {
       let customerId: number | null = null;
       const existingCustomers = await db
         .select()
-        .from(customers)
-        .where(eq(customers.phone, customerPhone));
+        .from(patients)
+        .where(eq(patients.phone, customerPhone));
 
       if (existingCustomers.length > 0) {
         customerId = existingCustomers[0].id;
       } else {
         const [inserted] = await db
-          .insert(customers)
+          .insert(patients)
           .values({
             name: customerName,
             phone: customerPhone,
             email: customerEmail || null,
           })
-          .returning({ id: customers.id });
+          .returning({ id: patients.id });
         customerId = inserted.id;
       }
 

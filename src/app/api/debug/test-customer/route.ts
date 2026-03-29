@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { customers } from "@/db/schema";
+import { patients } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
 
 export async function GET(req: NextRequest) {
   try {
-    const hashedPassword = await bcrypt.hash("test123", 12);
-    
     const existing = await db
       .select()
-      .from(customers)
-      .where(eq(customers.phone, "9876543210"));
+      .from(patients)
+      .where(eq(patients.phone, "9876543210"));
     
     if (existing.length > 0) {
       return NextResponse.json({
@@ -26,11 +23,10 @@ export async function GET(req: NextRequest) {
       });
     }
     
-    const [newCustomer] = await db.insert(customers).values({
+    const [newCustomer] = await db.insert(patients).values({
       name: "Test Customer",
       phone: "9876543210",
       email: "test@example.com",
-      password: hashedPassword,
       city: "Delhi",
       address: "123 Test Street, New Delhi",
     }).returning();

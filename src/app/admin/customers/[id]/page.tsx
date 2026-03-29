@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { db } from "@/db";
-import { customers, familyMembers } from "@/db/schema";
+import { patients, familyMembers } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -22,8 +22,8 @@ export default async function CustomerDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const customer = await db.query.customers.findFirst({
-    where: eq(customers.id, customerId),
+  const customer = await db.query.patients.findFirst({
+    where: eq(patients.id, customerId),
   });
 
   if (!customer) {
@@ -39,10 +39,10 @@ export default async function CustomerDetailPage({ params }: PageProps) {
       <div className="flex items-center justify-between">
         <div>
           <Link
-            href="/admin/customers"
+            href="/admin/patients"
             className="text-emerald-600 hover:underline text-sm mb-2 inline-block"
           >
-            ← Back to customers
+            ← Back to patients
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{customer.name}</h1>
           <p className="text-gray-500 text-sm mt-1">

@@ -1,7 +1,6 @@
 import { db } from "@/db";
 import { staff, staffAuditLog, settings } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import bcrypt from "bcryptjs";
 
 export type StaffRole = "admin" | "manager" | "sales" | "operations" | "support";
 
@@ -23,7 +22,7 @@ const ROLE_PERMISSIONS: Record<StaffRole, string[]> = {
   admin: [
     "bookings:*",
     "quotes:*", 
-    "customers:*",
+    "patients:*",
     "vaccines:*",
     "banners:*",
     "youtube-videos:*",
@@ -41,7 +40,7 @@ const ROLE_PERMISSIONS: Record<StaffRole, string[]> = {
   manager: [
     "bookings:*",
     "quotes:*",
-    "customers:*",
+    "patients:*",
     "vaccines:*",
     "pipelines:*",
     "reports:*",
@@ -51,17 +50,17 @@ const ROLE_PERMISSIONS: Record<StaffRole, string[]> = {
   sales: [
     "bookings:*",
     "quotes:*",
-    "customers:*",
+    "patients:*",
     "pipelines:*",
   ],
   operations: [
     "bookings:*",
-    "customers:read",
+    "patients:read",
     "pipelines:read",
     "consultation-vouchers:*",
   ],
   support: [
-    "customers:read",
+    "patients:read",
     "support-tickets:*",
     "bookings:read",
   ],
@@ -95,7 +94,7 @@ export async function verifyStaffCredentials(email: string, password: string): P
       return { success: false, error: "Account is deactivated" };
     }
 
-    const passwordValid = await bcrypt.compare(password, staffMember.password);
+    const passwordValid = password === staffMember.password;
     if (!passwordValid) {
       return { success: false, error: "Invalid email or password" };
     }
@@ -177,7 +176,7 @@ export async function logStaffAction(
 }
 
 export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 12);
+  return password; // Clerk handles auth; plain text for now
 }
 
 export async function getSetting(key: string): Promise<string | null> {

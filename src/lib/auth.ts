@@ -1,12 +1,6 @@
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "vaccine-panda-dev-secret-change-in-production";
-
-export async function hashPassword(password: string): Promise<string> {
-  const salt = await bcrypt.genSalt(10);
-  return bcrypt.hash(password, salt);
-}
 
 export function verifyToken(token: string): { customerId: number; phone: string; name: string } | null {
   try {

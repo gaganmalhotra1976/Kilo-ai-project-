@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { customers, customerOtps } from "@/db/schema";
+import { patients, customerOtps } from "@/db/schema";
 import { eq, or, and, gt, isNull } from "drizzle-orm";
-import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
   try {
@@ -35,14 +34,14 @@ export async function POST(request: Request) {
     if (email) {
       customer = await db
         .select()
-        .from(customers)
-        .where(eq(customers.email, email))
+        .from(patients)
+        .where(eq(patients.email, email))
         .get();
     } else {
       customer = await db
         .select()
-        .from(customers)
-        .where(eq(customers.phone, phone))
+        .from(patients)
+        .where(eq(patients.phone, phone))
         .get();
     }
 
@@ -73,13 +72,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 12);
-
     // Update customer's password
-    await db.update(customers).set({
-      password: hashedPassword,
-    }).where(eq(customers.id, customer.id));
+    await db.update(patients).set({
+    }).where(eq(patients.id, customer.id));
 
     // Mark OTP as used
     await db.update(customerOtps).set({

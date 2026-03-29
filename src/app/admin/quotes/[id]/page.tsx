@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
-import { quotes, bookings, customers } from "@/db/schema";
+import { quotes, bookings, patients } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export const metadata: Metadata = { title: "Quote Template" };
@@ -32,8 +32,8 @@ export default async function QuoteTemplatePage({
   if (booking?.customerId) {
     [customer] = await db
       .select()
-      .from(customers)
-      .where(eq(customers.id, booking.customerId));
+      .from(patients)
+      .where(eq(patients.id, booking.customerId));
   }
 
   let lineItems: any[] = [];

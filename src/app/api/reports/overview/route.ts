@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { bookings, quotes, pipelineCards, pipelineStages, supportTickets, payments, customers } from "@/db/schema";
+import { bookings, quotes, pipelineCards, pipelineStages, supportTickets, payments, patients } from "@/db/schema";
 import { eq, and, gte, lte, sql, desc } from "drizzle-orm";
 
 // GET /api/reports/overview — Dashboard widgets data

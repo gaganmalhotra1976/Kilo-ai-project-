@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { bookings, customers, pipelines, pipelineStages, pipelineCards, pipelineCardHistory } from "@/db/schema";
+import { bookings, patients, pipelines, pipelineStages, pipelineCards, pipelineCardHistory } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { triggerBookingCreated as sendBookingWebhook } from "@/lib/webhooks";
 import { requirePermission, type AuthenticatedRequest } from "@/lib/authMiddleware";
@@ -166,14 +166,14 @@ export async function POST(req: NextRequest) {
     let customerId: number | null = null;
     const existingCustomers = await db
       .select()
-      .from(customers)
-      .where(eq(customers.phone, customerPhone));
+      .from(patients)
+      .where(eq(patients.phone, customerPhone));
 
     if (existingCustomers.length > 0) {
       customerId = existingCustomers[0].id;
     } else {
       const inserted = await db
-        .insert(customers)
+        .insert(patients)
         .values({
           name: customerName,
           phone: customerPhone,
@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
           address,
           city: city || "Delhi",
         })
-        .returning({ id: customers.id });
+        .returning({ id: patients.id });
       customerId = inserted[0].id;
     }
 
