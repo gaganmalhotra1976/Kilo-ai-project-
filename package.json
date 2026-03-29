@@ -9,7 +9,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "bun run src/db/migrate.ts"
+    "db:migrate": "bun run src/db/migrate.ts",
+    "seed:admin": "bun run src/scripts/seed-admin.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.7",
