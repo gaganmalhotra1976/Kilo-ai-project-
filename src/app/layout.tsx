@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { ClerkProvider, Show, SignInButton, SignUpButton, UserButton } from '@clerk/nextjs'
+import { ClerkProvider, Show, SignInButton, SignUpButton, UserButton, OrganizationSwitcher, CreateOrganization } from '@clerk/nextjs'
 import { Geist } from 'next/font/google'
 import Link from 'next/link'
 import FloatingCTA from '@/components/FloatingCTA'
@@ -44,7 +44,11 @@ export default function RootLayout({
               </SignUpButton>
             </Show>
             <Show when="signed-in">
-              <UserButton />
+              <div className="flex items-center gap-2">
+                <OrganizationSwitcher />
+                <CreateOrganization />
+                <UserButton />
+              </div>
             </Show>
           </header>
           <FloatingCTA />
