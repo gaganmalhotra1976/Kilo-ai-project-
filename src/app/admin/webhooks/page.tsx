@@ -56,8 +56,8 @@ export default function WebhooksPage() {
         return;
       }
       
-      setWebhookLogs(logsData);
-      setSettings(settingsData);
+      setWebhookLogs(Array.isArray(logsData) ? logsData : (logsData.logs || []));
+      setSettings(Array.isArray(settingsData) ? settingsData : (settingsData.settings || []));
     } catch (error) {
       console.error("Failed to fetch data:", error);
     }
@@ -77,8 +77,8 @@ export default function WebhooksPage() {
         const logsData = await logsRes.json();
         const settingsData = await settingsRes.json();
         
-        setWebhookLogs(logsData);
-        setSettings(settingsData);
+        setWebhookLogs(Array.isArray(logsData) ? logsData : (logsData.logs || []));
+        setSettings(Array.isArray(settingsData) ? settingsData : (settingsData.settings || []));
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
