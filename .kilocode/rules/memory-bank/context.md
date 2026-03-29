@@ -8,6 +8,29 @@ The Vaccine Panda home vaccination platform is a functional CRM with booking man
 
 ## Recently Completed
 
+- [x] **Clerk Authentication Setup (March 2026)**:
+  - Removed `next-auth` and `bcryptjs` packages
+  - Installed `@clerk/nextjs` (v7.0.7)
+  - Created `src/middleware.ts` protecting `/dashboard`, `/admin`, `/profile`, `/portal` routes
+  - Created Clerk sign-in/sign-up pages at `/sign-in` and `/sign-up`
+  - Updated login/register pages to redirect to Clerk pages
+
+- [x] **OpenNext + Cloudflare Workers Setup**:
+  - Installed `@opennextjs/cloudflare` and `wrangler` as dev dependencies
+  - Created `wrangler.jsonc` configured for Next.js 16 deployment
+  - Created `.github/workflows/deploy.yml` for automatic Cloudflare Workers deployment on push to main
+
+- [x] **Turso Database Client**:
+  - Installed `@libsql/client` (v0.17.2)
+  - Created `src/db/turso.ts` Turso client utility using `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`
+
+- [x] **Schema Table Renames**:
+  - Renamed `customers` → `patients` (export: `patients`, table: `patients`)
+  - Renamed `documentStorage` → `temp_docs` (export: `temp_docs`, table: `temp_docs`)
+  - Renamed `vaccineInventory` → `vaccine_vectors` (export: `vaccine_vectors`, table: `vaccine_vectors`)
+  - Updated 30+ files with new table references
+  - Created migration file `0014_rename_tables.sql`
+
 - [x] **Comprehensive Application Audit (March 2026)**:
   - Generated detailed audit report: `vaccine-panda-audit-2026-03-12.md`
   - Frontend: 45+ pages built, good mobile responsiveness, 5 React warnings
@@ -134,11 +157,26 @@ The Vaccine Panda home vaccination platform is a functional CRM with booking man
 
 ## Current Focus
 
-The template is ready. Next steps depend on user requirements:
+- PayU payment link generation (later)
+- WhatsApp sending logic (later)
 
-1. What type of application to build
-2. What features are needed
-3. Design/branding preferences
+## Tech Stack
+
+- **Frontend**: Next.js 16 (App Router), Tailwind CSS 4, React 19
+- **Auth**: Clerk (replaced next-auth)
+- **Database**: Turso (SQLite edge database) + Drizzle ORM
+- **Deployment**: Cloudflare Workers (via OpenNext) + separate API Worker
+- **Payments**: PayU (webhook receiver only, links coming later)
+- **Communications**: WhatsApp (webhook receiver only, sending coming later)
+
+## Cloudflare Workers API
+
+Separate API worker at `workers/api.ts` with:
+- Clerk JWT auth on protected routes
+- GET /api/patients, /api/bookings, /api/vaccines
+- POST /api/bookings, PUT /api/bookings/:id
+- POST /api/webhook/whatsapp, /api/webhook/payu
+- POST /api/cron/reminders, /api/cron/cleanup
 
 ## Quick Start Guide
 
@@ -192,5 +230,6 @@ export async function GET() {
 
 | Date | Changes |
 |------|---------|
+| Mar 29, 2026 | Clerk auth setup, OpenNext/Cloudflare setup, Turso client, schema table renames (customers→patients, documentStorage→temp_docs, vaccineInventory→vaccine_vectors), Turso migration runner created, Cloudflare Workers API layer created |
 | Mar 2026 | Comprehensive audit + quote edit feature |
 | Initial | Template created with base setup |

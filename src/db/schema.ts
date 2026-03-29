@@ -48,7 +48,10 @@ export const bookings = sqliteTable("bookings", {
   status: text("status").notNull().default("pending"), // pending | quoted | confirmed | completed | cancelled
   paymentStatus: text("payment_status").notNull().default("unpaid"), // unpaid | paid | partial
   adminNotes: text("admin_notes"),
-  assignedNurse: text("assigned_nurse"), // Staff member assigned to this booking
+  assignedNurse: text("assigned_nurse"),
+  paymentDeadline: text("payment_deadline"),
+  expiresAt: text("expires_at"),
+  reminderSent: integer("reminder_sent", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date()
   ),
