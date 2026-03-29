@@ -32,9 +32,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en" className={geist.variable}>
-        <body className="antialiased font-sans bg-white text-gray-900">
+    <html lang="en" className={geist.variable}>
+      <body className="antialiased font-sans bg-white text-gray-900">
+        <ClerkProvider>
           <PublicHeader />
           <FloatingCTA />
           <PromoPopup />
@@ -83,8 +83,8 @@ export default function RootLayout({
               © {new Date().getFullYear()} GCPL OPC PVT LTD · GSTIN 07AAHCG7509E1ZN · All rights reserved
             </div>
           </footer>
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   )
 }
