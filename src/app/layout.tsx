@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from 'next'
-import { ClerkProvider, Show, SignInButton, SignUpButton, UserButton, OrganizationSwitcher, CreateOrganization } from '@clerk/nextjs'
+import { ClerkProvider } from '@clerk/nextjs'
 import { Geist } from 'next/font/google'
 import Link from 'next/link'
 import FloatingCTA from '@/components/FloatingCTA'
 import Header from '@/components/Header'
 import PromoPopup from '@/components/PromoPopup'
+import { PublicHeader } from '@/components/PublicHeader'
 import './globals.css'
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans' })
@@ -34,23 +35,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" className={geist.variable}>
         <body className="antialiased font-sans bg-white text-gray-900">
-          <header className="flex justify-end items-center p-4 gap-4 h-16 border-b">
-            <Show when="signed-out">
-              <SignInButton />
-              <SignUpButton>
-                <button className="bg-emerald-600 text-white rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer hover:bg-emerald-700 transition-colors">
-                  Sign Up
-                </button>
-              </SignUpButton>
-            </Show>
-            <Show when="signed-in">
-              <div className="flex items-center gap-2">
-                <OrganizationSwitcher />
-                <CreateOrganization />
-                <UserButton />
-              </div>
-            </Show>
-          </header>
+          <PublicHeader />
           <FloatingCTA />
           <PromoPopup />
           <Header />

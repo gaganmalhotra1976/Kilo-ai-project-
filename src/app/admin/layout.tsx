@@ -1,12 +1,7 @@
-import Link from "next/link";
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-  title: {
-    default: "Admin — The Vaccine Panda",
-    template: "%s | Admin",
-  },
-};
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: "📊" },
@@ -14,7 +9,7 @@ const navItems = [
   { href: "/admin/bookings", label: "Bookings", icon: "📋" },
   { href: "/admin/quotes", label: "Quotes", icon: "💰" },
   { href: "/admin/invoices", label: "Invoices", icon: "🧾" },
-  { href: "/admin/customers", label: "Customers", icon: "👥" },
+  { href: "/admin/customers", label: "Patients", icon: "👥" },
   { href: "/admin/vaccines", label: "Vaccines", icon: "💉" },
   { href: "/admin/banners", label: "Hero Banners", icon: "🖼️" },
   { href: "/admin/youtube-videos", label: "YouTube Videos", icon: "▶️" },
@@ -26,11 +21,43 @@ const navItems = [
   { href: "/admin/settings/audit-log", label: "Audit Log", icon: "📝" },
 ];
 
+interface StaffInfo {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
+
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [staffInfo, setStaffInfo] = useState<StaffInfo | null>(null);
+
+  useEffect(() => {
+    const storedStaffId = localStorage.getItem("admin_staffId");
+    const storedAdminName = localStorage.getItem("admin_name");
+    const storedAdminToken = localStorage.getItem("admin_token");
+    
+    if (storedStaffId && storedAdminName && storedAdminToken) {
+      setStaffInfo({
+        id: parseInt(storedStaffId),
+        name: storedAdminName,
+        email: "",
+        role: "admin",
+      });
+    }
+  }, []);
+
+  const handleStaffLogout = () => {
+    localStorage.removeItem("admin_token");
+    localStorage.removeItem("admin_staffId");
+    localStorage.removeItem("admin_name");
+    setStaffInfo(null);
+    window.location.href = "/admin/login";
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex">
       {/* Sidebar */}
@@ -72,9 +99,37 @@ export default function AdminLayout({
       <div className="flex-1 flex flex-col min-w-0">
         <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <h1 className="text-gray-900 font-semibold">The Vaccine Panda — CRM</h1>
-          <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-medium">
-            Admin
-          </span>
+          
+          <div className="flex items-center gap-4">
+            {staffInfo ? (
+              <>
+                <span className="text-sm text-gray-600">
+                  Logged in as: <strong>{staffInfo.name}</strong>
+                </span>
+                <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-medium">
+                  Staff
+                </span>
+                <button
+                  onClick={handleStaffLogout}
+                  className="text-sm text-red-600 hover:underline"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
+                  Admin
+                </span>
+                <Link
+                  href="/admin/login"
+                  className="text-sm bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+                >
+                  Staff Login
+                </Link>
+              </>
+            )}
+          </div>
         </header>
         <main className="flex-1 p-6 overflow-auto">{children}</main>
       </div>
