@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "vaccine-panda",
+  "compatibility_date": "2025-01-01",
+  "main": ".open-next/server.mjs",
+  "next": "dist",
+  "dev": {
+    "port": 3000,
+    "local_protocol": "http"
+  },
+  "build": {
+    "command": "bun run build",
+    "cwd": ".",
+    "watch": ["src"]
+  },
+  "deploy": {
+    "command": "bun run build"
+  },
+  "assets": "/public",
+  "kv_namespaces": [],
+  "vars": {},
+  "env": {}
+}
