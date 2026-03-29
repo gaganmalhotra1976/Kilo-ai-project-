@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
 const navItems = [
@@ -28,27 +28,29 @@ interface StaffInfo {
   role: string;
 }
 
+function getInitialStaffInfo(): StaffInfo | null {
+  if (typeof window === "undefined") return null;
+  const storedStaffId = localStorage.getItem("admin_staffId");
+  const storedAdminName = localStorage.getItem("admin_name");
+  const storedAdminToken = localStorage.getItem("admin_token");
+  
+  if (storedStaffId && storedAdminName && storedAdminToken) {
+    return {
+      id: parseInt(storedStaffId, 10),
+      name: storedAdminName,
+      email: "",
+      role: "admin",
+    };
+  }
+  return null;
+}
+
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [staffInfo, setStaffInfo] = useState<StaffInfo | null>(null);
-
-  useEffect(() => {
-    const storedStaffId = localStorage.getItem("admin_staffId");
-    const storedAdminName = localStorage.getItem("admin_name");
-    const storedAdminToken = localStorage.getItem("admin_token");
-    
-    if (storedStaffId && storedAdminName && storedAdminToken) {
-      setStaffInfo({
-        id: parseInt(storedStaffId),
-        name: storedAdminName,
-        email: "",
-        role: "admin",
-      });
-    }
-  }, []);
+  const [staffInfo, setStaffInfo] = useState<StaffInfo | null>(getInitialStaffInfo);
 
   const handleStaffLogout = () => {
     localStorage.removeItem("admin_token");

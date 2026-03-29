@@ -1,17 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 
 export default function AdminSetupPage() {
   const [setupStatus, setSetupStatus] = useState<"loading" | "ready" | "error">("loading");
 
-  useEffect(() => {
-    // Check if admin already exists by trying to access admin page
-    checkAdminStatus();
-  }, []);
-
-  async function checkAdminStatus() {
+  const checkAdminStatus = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/staff/auth", {
         method: "POST",
@@ -30,13 +25,12 @@ export default function AdminSetupPage() {
     } catch {
       setSetupStatus("error");
     }
-  }
+  }, []);
 
-  async function handleCreateAdmin() {
+  const handleCreateAdmin = async () => {
     setSetupStatus("loading");
     
     try {
-      // Try creating admin via create-admin endpoint
       const createRes = await fetch("/api/admin/create-admin", { method: "GET" });
       const createData = await createRes.json();
       
@@ -48,7 +42,7 @@ export default function AdminSetupPage() {
     } catch {
       setSetupStatus("error");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
@@ -72,7 +66,7 @@ export default function AdminSetupPage() {
             </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Admin Not Found</h2>
             <p className="text-gray-600 mb-6">
-              The admin account doesn't exist in the database. Click below to create it.
+              The admin account does not exist in the database. Click below to create it.
             </p>
             <button
               onClick={handleCreateAdmin}
