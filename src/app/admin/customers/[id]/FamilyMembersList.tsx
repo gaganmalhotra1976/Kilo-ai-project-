@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { familyMembers } from "@/db/schema";
 
 interface FamilyMember {
   id: number;
