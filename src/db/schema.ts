@@ -13,10 +13,12 @@ export const customerOtps = sqliteTable("customer_otps", {
 // ── Patients ──────────────────────────────────────────────────────────────
 export const patients = sqliteTable("patients", {
   id: integer("id").primaryKey({ autoIncrement: true }),
+  clerkId: text("clerk_id").unique(), // Clerk user ID — links Clerk auth to patient record
   name: text("name").notNull(),
   phone: text("phone").notNull(),
   email: text("email"),
-  password: text("password"), // For customer login
+  dateOfBirth: text("date_of_birth"), // ISO date string e.g. 1990-05-21
+  password: text("password"), // For customer login (legacy — Clerk handles auth)
   address: text("address"),
   city: text("city").notNull().default("Delhi"),
   pinCode: text("pin_code"), // PIN/ZIP code

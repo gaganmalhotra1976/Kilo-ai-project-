@@ -23,18 +23,33 @@ const isCronRoute = createRouteMatcher(["/api/cron(.*)"]);
 
 /** Public API routes that do not need auth */
 const isPublicApiRoute = createRouteMatcher([
-  "/api/bookings",            // POST — public lead capture
-  "/api/auth(.*)",            // OTP / forgot-password flows
-  "/api/banners(.*)",         // Public banner display
-  "/api/blog-posts(.*)",      // Public blog
-  "/api/promo-popup(.*)",     // Public promo popup
+  "/api/bookings",               // POST — public lead capture
+  "/api/auth(.*)",               // OTP / forgot-password flows
+  "/api/banners(.*)",            // Public banner display
+  "/api/blog-posts(.*)",         // Public blog
+  "/api/promo-popup(.*)",        // Public promo popup
   "/api/vaccine-categories(.*)", // Public vaccine catalogue
   "/api/vaccine-category-items(.*)",
   "/api/vaccines/catalogue",
   "/api/youtube-videos(.*)",
   "/api/consultation-bookings/slots", // Public slot listing
-  "/api/debug(.*)",           // Debug endpoints (remove in production)
-  "/api/seed(.*)",            // Seed endpoints (remove in production)
+  "/api/profile/setup",          // Profile setup — auth checked inside route
+  "/api/debug(.*)",              // Debug endpoints (remove in production)
+  "/api/seed(.*)",               // Seed endpoints (remove in production)
+]);
+
+/**
+ * Routes excluded from the "profile setup required" redirect.
+ * These must be accessible before a patient record exists.
+ */
+const isProfileSetupExcluded = createRouteMatcher([
+  "/profile/setup",
+  "/api/profile/setup",
+  "/api/webhooks(.*)",
+  "/api/cron(.*)",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/(auth)(.*)",
 ]);
 
 // ── Middleware ────────────────────────────────────────────────────────────────
@@ -52,7 +67,6 @@ export default clerkMiddleware(async (auth, req) => {
     const { userId, sessionClaims } = await auth();
 
     if (!userId) {
-      // Redirect to Clerk sign-in
       const signInUrl = new URL("/sign-in", req.url);
       signInUrl.searchParams.set("redirect_url", req.url);
       return NextResponse.redirect(signInUrl);
@@ -112,6 +126,28 @@ export default clerkMiddleware(async (auth, req) => {
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    return NextResponse.next();
+  }
+
+  // 7. Profile setup gate — for signed-in users on page routes:
+  //    If the user is signed in but hasn't completed their profile
+  //    (indicated by absence of the "vp_profile_set" cookie), redirect to
+  //    /profile/setup.  The setup page and its API are excluded from this check.
+  //
+  //    We use a lightweight cookie check instead of a DB lookup so the
+  //    middleware stays fast (no round-trip to Turso on every request).
+  //    The /api/profile/setup route sets this cookie on success.
+  if (!isProfileSetupExcluded(req)) {
+    const { userId } = await auth();
+
+    if (userId) {
+      const profileCookie = req.cookies.get("vp_profile_set");
+      if (!profileCookie) {
+        const setupUrl = new URL("/profile/setup", req.url);
+        return NextResponse.redirect(setupUrl);
+      }
     }
   }
 
