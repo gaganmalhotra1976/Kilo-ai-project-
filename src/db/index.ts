@@ -9,7 +9,10 @@ let _db: SqliteRemoteDatabase<typeof schema> | null = null;
 
 function getDb(): SqliteRemoteDatabase<typeof schema> {
   if (!_db) {
-    _db = createDatabase(schema);
+    _db = createDatabase(schema, {
+      url: process.env.TURSO_DATABASE_URL ?? process.env.DB_URL,
+      token: process.env.TURSO_AUTH_TOKEN ?? process.env.DB_TOKEN,
+    });
   }
   return _db;
 }

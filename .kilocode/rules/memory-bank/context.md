@@ -194,3 +194,8 @@ export async function GET() {
 |------|---------|
 | Mar 2026 | Comprehensive audit + quote edit feature |
 | Initial | Template created with base setup |
+
+- [x] **Environment variable compatibility update (Mar 2026):**
+  - Updated `src/db/index.ts` to initialize database using `TURSO_DATABASE_URL` / `TURSO_AUTH_TOKEN` with fallback to `DB_URL` / `DB_TOKEN`
+  - Added tracked `.env.example` placeholders for Turso and upcoming Clerk publishable key (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`)
+  - This allows direct use of Turso-style environment variable names without breaking existing deployments
