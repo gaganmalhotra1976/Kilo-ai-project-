@@ -1,0 +1,47 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "vaccine-panda-kilo",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2024-12-30",
+  "compatibility_flags": [
+    // Enable Node.js API
+    // see https://developers.cloudflare.com/workers/configuration/compatibility-flags/#nodejs-compatibility-flag
+    "nodejs_compat",
+    // Allow to fetch URLs in your app
+    // see https://developers.cloudflare.com/workers/configuration/compatibility-flags/#global-fetch-strictly-public
+    "global_fetch_strictly_public"
+  ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      // The service should match the "name" of your worker
+      "service": "vaccine-panda-kilo"
+    }
+  ],
+  "r2_buckets": [
+    // Uncomment and configure R2 bucket for Next.js caching (ISR/SSG)
+    // {
+    //   "binding": "NEXT_INC_CACHE_R2_BUCKET",
+    //   "bucket_name": "vaccine-panda-cache"
+    // }
+  ],
+  "images": {
+    // Enable image optimization
+    // see https://opennext.js.org/cloudflare/howtos/image
+    "binding": "IMAGES"
+  },
+  "vars": {
+    // Add your environment variables here
+    // Example:
+    // "GOOGLE_CLIENT_ID": "your-client-id",
+    // "GOOGLE_CLIENT_SECRET": "your-client-secret"
+  }
+  // Note: For sensitive values like API keys, use Cloudflare Workers secrets instead:
+  // wrangler secret put TURSO_DATABASE_URL
+  // wrangler secret put DB_TOKEN
+  // wrangler secret put JWT_SECRET
+}

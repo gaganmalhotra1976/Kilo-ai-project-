@@ -36,6 +36,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Cloudflare / OpenNext build output
+.open-next
+
+# Cloudflare local dev secrets (never commit)
+.dev.vars
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
