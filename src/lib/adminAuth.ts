@@ -1,57 +1,6 @@
-import { auth, clerkClient } from "@clerk/nextjs/server";
-import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { staff, staffAuditLog, settings } from "@/db/schema";
-import { eq } from "drizzle-orm";
-
-// ── Clerk-based admin role helpers ───────────────────────────────────────────
-
-/**
- * Returns true if the currently signed-in Clerk user has role === "admin"
- * in their publicMetadata.  Call from Server Components or Route Handlers.
- */
-export async function isClerkAdmin(): Promise<boolean> {
-  const { userId, sessionClaims } = await auth();
-  if (!userId) return false;
-  const role = (sessionClaims?.metadata as { role?: string } | undefined)?.role;
-  return role === "admin";
-}
-
-/**
- * Sets the Clerk user's public metadata role to "admin".
- * Use this once during initial admin setup.
- */
-export async function setClerkAdminRole(userId: string): Promise<void> {
-  const client = await clerkClient();
-  await client.users.updateUser(userId, {
-    publicMetadata: { role: "admin" },
-  });
-}
-
-/**
- * Route Handler guard — returns 403 NextResponse if the caller is not an
- * authenticated Clerk admin.  Returns null if the check passes.
- *
- * Usage:
- *   const denied = await requireClerkAdmin(req);
- *   if (denied) return denied;
- */
-export async function requireClerkAdmin(
-  _req: NextRequest
-): Promise<NextResponse | null> {
-  const { userId, sessionClaims } = await auth();
-
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const role = (sessionClaims?.metadata as { role?: string } | undefined)?.role;
-  if (role !== "admin") {
-    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
-  }
-
-  return null;
-}
+import { eq, and } from "drizzle-orm";
 
 export type StaffRole = "admin" | "manager" | "sales" | "operations" | "support";
 

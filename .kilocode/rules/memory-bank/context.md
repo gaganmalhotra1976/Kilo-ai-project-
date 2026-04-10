@@ -2,9 +2,9 @@
 
 ## Current State
 
-**App Status**: ✅ ~75% complete — core CRM functional, auth secured, Turso + Clerk fully wired
+**App Status**: ✅ Full Vaccine Panda app built with core CRM features
 
-The Vaccine Panda home vaccination platform is a functional CRM with booking management, quotes, pipelines, and reports. Phases 1–6 complete as of Mar 30 2026: all 90+ API routes migrated to Turso, admin routes protected via Clerk RBAC, Google OAuth enabled on sign-in/sign-up, profile setup flow added with Indian phone validation. Remaining: WhatsApp integration, PayU payment flow, cron setup, Cloudflare deployment.
+The Vaccine Panda home vaccination platform is a functional CRM with booking management, quotes, pipelines, and reports. Admin panel is publicly accessible (security issue - needs authentication). SQLite + Drizzle ORM for data persistence.
 
 ## Recently Completed
 
@@ -226,24 +226,10 @@ export async function GET() {
 - [ ] Add example components
 - [ ] Add testing setup recipe
 
-## Remaining Work
-
-| Feature | Priority | Notes |
-|---------|----------|-------|
-| WhatsApp Business API | High | Worker stub exists, need Meta credentials + send logic |
-| PayU payment flow | High | Worker webhook done, need frontend payment link generation |
-| Cron job setup | Medium | Cloudflare Workers cron triggers (reminders, cleanup) |
-| Cloudflare deployment | Medium | OpenNext wrangler.jsonc ready, need CLOUDFLARE_API_TOKEN secret |
-| Email notifications | Medium | No email service connected yet |
-| Vaccination certificates | Medium | Schema + route exist, PDF generation missing |
-| Staff performance tracking | Low | Schema exists, no UI |
-
 ## Session History
 
 | Date | Changes |
 |------|---------|
-| Mar 30, 2026 | PHASES 5-6: Google OAuth on sign-in/sign-up (Clerk socialButtonsPlacement:top), profile setup page (/profile/setup) with Indian phone validation, /api/profile/setup upsert route with vp_profile_set cookie, middleware profile gate, patients schema adds clerk_id + date_of_birth, migration 0016, bun typecheck ✅ bun lint ✅ (0 errors) |
-| Mar 30, 2026 | PHASES 1-4: Turso db migration (src/db/index.ts → drizzle-orm/libsql), full route protection in middleware (admin+role, dashboard, api/admin+role, webhooks public), requireClerkAdmin helpers in adminAuth.ts, svix webhook verification, .env.example |
 | Mar 29, 2026 | Clerk auth setup, OpenNext/Cloudflare setup, Turso client, schema table renames (customers→patients, documentStorage→temp_docs, vaccineInventory→vaccine_vectors), Turso migration runner created, Cloudflare Workers API layer created |
 | Mar 2026 | Comprehensive audit + quote edit feature |
 | Initial | Template created with base setup |
