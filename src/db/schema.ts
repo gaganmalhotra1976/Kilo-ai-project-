@@ -13,6 +13,7 @@ export const customerOtps = sqliteTable("customer_otps", {
 // ── Patients ──────────────────────────────────────────────────────────────
 export const patients = sqliteTable("patients", {
   id: integer("id").primaryKey({ autoIncrement: true }),
+  clerkId: text("clerk_id"), // Clerk user ID for linking authenticated users
   name: text("name").notNull(),
   phone: text("phone").notNull(),
   email: text("email"),
@@ -21,6 +22,7 @@ export const patients = sqliteTable("patients", {
   city: text("city").notNull().default("Delhi"),
   pinCode: text("pin_code"), // PIN/ZIP code
   landmark: text("landmark"), // Nearby landmark for easier navigation
+  dateOfBirth: text("date_of_birth"), // ISO date string for patient age calculation
   notes: text("notes"),
   pictureData: text("picture_data"), // Base64 encoded image (JPEG/PNG) for profile picture
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
