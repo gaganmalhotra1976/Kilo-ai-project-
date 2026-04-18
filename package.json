@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push:sqlite",
     "db:migrate": "bun run src/db/migrate.ts",
     "seed:admin": "bun run src/scripts/seed-admin.ts"
   },
